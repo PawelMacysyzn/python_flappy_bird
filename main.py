@@ -10,9 +10,14 @@ clock = pygame.time.Clock()
 # Set up the drawing window
 window = pygame.display.set_mode(const.windows_size)
 
+# collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
-walls = []  # list containing all walls
+# list containing all walls
+walls = []
+
+# to delete
+var_global = 0
 
 
 def name_of_log(name_str):
@@ -41,14 +46,44 @@ def show_character_statistics():
     label_2 = font.render(str(pos_x), 1, (0, 0, 0))
     label_3 = font.render("Y:", 1, (0, 0, 0))
     label_4 = font.render(str(pos_y), 1, (0, 0, 0))
+    label_5 = font.render("R:", 1, (0, 0, 0))
+    label_6 = font.render(str(const.rotate), 1, (0, 0, 0))
+    label_7 = font.render("V:", 1, (0, 0, 0))
+    label_8 = font.render(str(var_global), 1, (0, 0, 0))
 
+    # next stat X
     window.blit(label_1, (const.windows_size[0] - position_x, position_y))
     window.blit(
         label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
+    # next stat Y
     position_x -= next_width
     window.blit(label_3, (const.windows_size[0] - position_x, position_y))
     window.blit(
         label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
+    # next line R
+    position_x += next_width
+    window.blit(label_5, (const.windows_size[0] - position_x, position_y + 50))
+    window.blit(
+        label_6, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
+    # next stat V
+    position_x -= next_width
+    window.blit(label_7, (const.windows_size[0] - position_x, position_y + 50))
+    window.blit(
+        label_8, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
+
+
+def rotate(var):
+    multip = 2
+    jump_ch = 5
+    max_rotate = 45
+    global var_global
+    var_global = var
+    if (var > 0):
+        if (const.rotate <= max_rotate):
+            const.rotate += 1 * multip * jump_ch
+    else:
+        if (const.rotate >= -max_rotate):
+            const.rotate -= 1 * multip
 
 
 def move_character():
@@ -59,12 +94,12 @@ def move_character():
         if pos_y >= 0:
             # up
             pos_y -= 7 * multiplier
-            const.rotate = 30
+            rotate(1)
     else:
         if ((pos_y <= const.windows_size[1])):
             # down
             pos_y += 2 * multiplier
-            const.rotate = -30
+            rotate(0)
 
 
 def drawn_character():
@@ -89,18 +124,10 @@ def drawn_character():
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
-def rotate():  # to do..
-    orientation = 0
-    if (orientation > 0):
-        pass
-    else:
-        pass
-
-
+###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 generate_walls()
 counter = []
-###---------------------------------GAMING-LOOP---------------------------------###
 
 name_of_log("My GAmE")
 

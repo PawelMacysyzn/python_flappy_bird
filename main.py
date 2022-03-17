@@ -16,6 +16,7 @@ pos_y = const.y_ch
 # list containing all walls
 walls = []
 
+
 # to delete
 var_global = 0
 
@@ -107,20 +108,28 @@ def drawn_character():
     character = pygame.image.load('imgs\\flappy.png')
     character = pygame.transform.scale(
         character, (character.get_width()*const.scale, character.get_height()*const.scale))
+
     character = pygame.transform.rotate(character, const.rotate)
     window.blit(character, (pos_x-(character.get_width()/2),
                 pos_y-(character.get_height()/2)))
 
     # collision
-    # rect_character = character.get_rect(center = (pos_x , pos_y ))
+    rect_character = character.get_rect(center=(pos_x, pos_y))
     rect_character = pygame.Rect(pos_x-character.get_width()/2,
                                  pos_y - character.get_height()/2,
                                  character.get_width(), character.get_height())
+    mask_character = pygame.mask.from_surface(character)
 
     color1 = (0, 255, 0)
     for wall in walls:
-        if wall.colliderect(rect_character):
+        surf_wall = pygame.Surface((wall[2], wall[3]))
+        mask_wall = pygame.mask.from_surface(surf_wall)
+        offset_x = wall[0] - rect_character[0]
+        offset_y = wall[1] - rect_character[1]
+
+        if mask_character.overlap(mask_wall, (offset_x, offset_y)):
             color1 = (255, 0, 0)
+
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
@@ -132,6 +141,7 @@ counter = []
 name_of_log("My GAmE")
 
 running = True
+
 while running:
 
     ### CLOCK ###
@@ -157,7 +167,6 @@ while running:
     for wall in walls:
         wall.move_ip(-const.wall_speed * dt, 0)
 
-    # Collision
     # for wall in walls
 
     ### DRAWING ####

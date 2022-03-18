@@ -1,7 +1,10 @@
+from pickle import TRUE
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
 import threading  # manage threads in Operation System
+# for import music
+from pygame import mixer
 
 # initialize pygame
 pygame.init()
@@ -16,14 +19,24 @@ pos_y = const.y_ch
 # list containing all walls
 walls = []
 
+hit_buton_mute = False
+# allows to play music only once in a game loop
+play_loop_music = True
+# turns music on and off
+music_off_on = True
 
-# to delete
-var_global = 0
+
+def play_music(play):
+    # Initialize Mixer in the program
+    mixer.init()
+    mixer.music.load('music/bensound-summer_ogg_music.ogg')
+    if play:
+        mixer.music.play()
 
 
 def name_of_log(name_str):
-    pygame.display.set_caption(name_str.upper())
     # to do, show session and user in bar
+    pygame.display.set_caption(name_str.upper())
 
 
 def generate_walls():
@@ -50,7 +63,7 @@ def show_character_statistics():
     label_5 = font.render("R:", 1, (0, 0, 0))
     label_6 = font.render(str(const.rotate), 1, (0, 0, 0))
     label_7 = font.render("V:", 1, (0, 0, 0))
-    label_8 = font.render(str(var_global), 1, (0, 0, 0))
+    label_8 = font.render(str(0), 1, (0, 0, 0))
 
     # next stat X
     window.blit(label_1, (const.windows_size[0] - position_x, position_y))
@@ -77,8 +90,6 @@ def rotate(var):
     multip = 2
     jump_ch = 5
     max_rotate = 45
-    global var_global
-    var_global = var
     if (var > 0):
         if (const.rotate <= max_rotate):
             const.rotate += 1 * multip * jump_ch
@@ -133,11 +144,27 @@ def drawn_character():
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
+def drawn_buton(pos_mouse):
+    buton_mute_pos = (750, 750)
+    scale_buton = 0.25
+    buton_mute_surf = pygame.image.load('imgs\mute.png')
+    buton_mute_surf = pygame.transform.scale(
+        buton_mute_surf, (buton_mute_surf.get_width()*scale_buton, buton_mute_surf.get_height()*scale_buton))
+    buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
+    window.blit(buton_mute_surf, buton_mute_rect)
+    buton_mute_mask = pygame.mask.from_surface(buton_mute_surf)
+    pos_in_mask = pos_mouse[0] - \
+        buton_mute_rect.x, pos_mouse[1] - buton_mute_rect.y
+    if buton_mute_rect.collidepoint(*pos_mouse) and buton_mute_mask.get_at(pos_in_mask):
+        return True
+    else:
+        return False
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 generate_walls()
 counter = []
-
 name_of_log("My GAmE")
 
 running = True
@@ -148,11 +175,22 @@ while running:
     dt = clock.tick(const.framerate)
 
     ### EVENTS ###
+    if play_loop_music:
+        play_music(music_off_on)
+        play_loop_music = False
 
     # event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # handling button "X"
             running = False
+        # button operation
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if hit_buton_mute and music_off_on:
+                music_off_on = False
+                play_loop_music = True
+            elif hit_buton_mute and not music_off_on:
+                music_off_on = True
+                play_loop_music = True
 
     ### MATHS ###
 
@@ -182,9 +220,8 @@ while running:
     move_character()
     drawn_character()
     show_character_statistics()
-
+    hit_buton_mute = drawn_buton(pygame.mouse.get_pos())
     ### DISPLAY ###
-
     # Update the display
     pygame.display.update()
 

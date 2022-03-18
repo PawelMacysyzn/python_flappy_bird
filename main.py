@@ -1,4 +1,4 @@
-from pickle import TRUE
+from email.mime import image
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
@@ -23,7 +23,7 @@ hit_buton_mute = False
 # allows to play music only once in a game loop
 play_loop_music = True
 # turns music on and off
-music_off_on = True
+music_off_on = False
 
 
 def play_music(play):
@@ -133,7 +133,7 @@ def drawn_character():
 
     color1 = (0, 255, 0)
     for wall in walls:
-        surf_wall = pygame.Surface((wall[2], wall[3]))
+        surf_wall = pygame.Surface((wall[2], wall[3])).convert_alpha()
         mask_wall = pygame.mask.from_surface(surf_wall)
         offset_x = wall[0] - rect_character[0]
         offset_y = wall[1] - rect_character[1]
@@ -144,12 +144,11 @@ def drawn_character():
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
-def drawn_buton(pos_mouse):
+def drawn_buton(pos_mouse, music_off_on):
+    scale = 1
     buton_mute_pos = (750, 750)
-    scale_buton = 0.25
-    buton_mute_surf = pygame.image.load('imgs\mute.png')
-    buton_mute_surf = pygame.transform.scale(
-        buton_mute_surf, (buton_mute_surf.get_width()*scale_buton, buton_mute_surf.get_height()*scale_buton))
+    buton_mute_surf = do_sprite('imgs\mute_sprite.png', 2, music_off_on, scale)
+
     buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
     window.blit(buton_mute_surf, buton_mute_rect)
     buton_mute_mask = pygame.mask.from_surface(buton_mute_surf)
@@ -159,6 +158,24 @@ def drawn_buton(pos_mouse):
         return True
     else:
         return False
+
+
+def get_image(sheet, frame, width, height, scale, color):
+    image = pygame.Surface((width, height)).convert_alpha()
+    image.blit(sheet, (0, 0), ((frame*width), 0, width, height))
+    image = pygame.transform.scale(image, (width*scale, height*scale))
+    image.set_colorkey(color)
+    return image
+
+
+def do_sprite(image, how_many_frame, which_frame, scale):
+    spride_sheet_image = pygame.image.load(image).convert_alpha()
+    WHITE = (255, 255, 255)
+    width = spride_sheet_image.get_width()/how_many_frame
+    height = spride_sheet_image.get_height()
+    frame = get_image(spride_sheet_image, which_frame,
+                      width, height, scale, WHITE)
+    return frame
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
@@ -205,8 +222,6 @@ while running:
     for wall in walls:
         wall.move_ip(-const.wall_speed * dt, 0)
 
-    # for wall in walls
-
     ### DRAWING ####
 
     # Fill the background
@@ -220,7 +235,7 @@ while running:
     move_character()
     drawn_character()
     show_character_statistics()
-    hit_buton_mute = drawn_buton(pygame.mouse.get_pos())
+    hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
     ### DISPLAY ###
     # Update the display
     pygame.display.update()

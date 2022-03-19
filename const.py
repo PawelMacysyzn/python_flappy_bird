@@ -4,9 +4,9 @@ corridor_size = 250
 wall_width = 60
 wall_speed = 0.15
 new_wall_timer = 3
-framerate = 120
+framerate = 60
 
-scale = 0.2
+scale = 0.3
 rotate = 0
 
 color_rect = (107, 144, 128)

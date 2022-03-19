@@ -1,4 +1,3 @@
-from email.mime import image
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
@@ -89,7 +88,7 @@ def show_character_statistics():
 def rotate(var):
     multip = 2
     jump_ch = 5
-    max_rotate = 45
+    max_rotate = 35
     if (var > 0):
         if (const.rotate <= max_rotate):
             const.rotate += 1 * multip * jump_ch
@@ -115,21 +114,17 @@ def move_character():
 
 
 def drawn_character():
-
-    character = pygame.image.load('imgs\\flappy.png')
-    character = pygame.transform.scale(
-        character, (character.get_width()*const.scale, character.get_height()*const.scale))
-
-    character = pygame.transform.rotate(character, const.rotate)
-    window.blit(character, (pos_x-(character.get_width()/2),
-                pos_y-(character.get_height()/2)))
+    character_frame = do_sprite('imgs\\flappy_sprite.png',
+                                3, 1, const.scale, 'RED').convert_alpha()
+    rotate_character = pygame.transform.rotate(character_frame, const.rotate)
+    window.blit(rotate_character, (pos_x-(rotate_character.get_width()/2),
+                pos_y-(rotate_character.get_height()/2)))
 
     # collision
-    rect_character = character.get_rect(center=(pos_x, pos_y))
-    rect_character = pygame.Rect(pos_x-character.get_width()/2,
-                                 pos_y - character.get_height()/2,
-                                 character.get_width(), character.get_height())
-    mask_character = pygame.mask.from_surface(character)
+    rect_character = pygame.Rect(pos_x-rotate_character.get_width()/2,
+                                 pos_y - rotate_character.get_height()/2,
+                                 rotate_character.get_width(), rotate_character.get_height())
+    mask_character = pygame.mask.from_surface(rotate_character)
 
     color1 = (0, 255, 0)
     for wall in walls:
@@ -140,14 +135,15 @@ def drawn_character():
 
         if mask_character.overlap(mask_wall, (offset_x, offset_y)):
             color1 = (255, 0, 0)
-
+    # Box for collision
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
 def drawn_buton(pos_mouse, music_off_on):
     scale = 1
     buton_mute_pos = (750, 750)
-    buton_mute_surf = do_sprite('imgs\mute_sprite.png', 2, music_off_on, scale)
+    buton_mute_surf = do_sprite(
+        'imgs\mute_sprite.png', 2, music_off_on, scale, 'WHITE')
 
     buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
     window.blit(buton_mute_surf, buton_mute_rect)
@@ -168,13 +164,18 @@ def get_image(sheet, frame, width, height, scale, color):
     return image
 
 
-def do_sprite(image, how_many_frame, which_frame, scale):
+def do_sprite(image, how_many_frame, which_frame, scale, color):
     spride_sheet_image = pygame.image.load(image).convert_alpha()
-    WHITE = (255, 255, 255)
+    if color.upper() == 'WHITE':
+        color = (255, 255, 255)
+    elif color.upper() == 'BLACK':
+        color = (0, 0, 0)
+    elif color.upper() == 'RED':
+        color = (255, 0, 0)
     width = spride_sheet_image.get_width()/how_many_frame
     height = spride_sheet_image.get_height()
     frame = get_image(spride_sheet_image, which_frame,
-                      width, height, scale, WHITE)
+                      width, height, scale, color)
     return frame
 
 
@@ -183,14 +184,13 @@ def do_sprite(image, how_many_frame, which_frame, scale):
 generate_walls()
 counter = []
 name_of_log("My GAmE")
-
+i = 0
 running = True
 
 while running:
 
     ### CLOCK ###
     dt = clock.tick(const.framerate)
-
     ### EVENTS ###
     if play_loop_music:
         play_music(music_off_on)
@@ -202,6 +202,7 @@ while running:
             running = False
         # button operation
         if event.type == pygame.MOUSEBUTTONDOWN:
+            # press button mute
             if hit_buton_mute and music_off_on:
                 music_off_on = False
                 play_loop_music = True
@@ -236,7 +237,15 @@ while running:
     drawn_character()
     show_character_statistics()
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
-    ### DISPLAY ###
+
+    if False:
+        if i == 3:
+            i = 0
+        character = do_sprite('imgs\\flappy_sprite.png',
+                              3, i, const.scale, 'RED')
+        window.blit(character, (0, 0))
+        i += 1
+
     # Update the display
     pygame.display.update()
 

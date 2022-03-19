@@ -1,3 +1,4 @@
+from re import I
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
@@ -11,6 +12,11 @@ pygame.init()
 clock = pygame.time.Clock()
 # Set up the drawing window
 window = pygame.display.set_mode(const.windows_size)
+
+# how many times the program has been run
+program_counter = 0
+drawn_frame = False
+delta_time = 0
 
 # collecting beginning set up position of character
 pos_x = const.x_ch
@@ -114,8 +120,9 @@ def move_character():
 
 
 def drawn_character():
+    change_frame = frame_animation(3, 3)
     character_frame = do_sprite('imgs\\flappy_sprite.png',
-                                3, 1, const.scale, 'RED').convert_alpha()
+                                3, change_frame, const.scale, 'RED').convert_alpha()
     rotate_character = pygame.transform.rotate(character_frame, const.rotate)
     window.blit(rotate_character, (pos_x-(rotate_character.get_width()/2),
                 pos_y-(rotate_character.get_height()/2)))
@@ -179,6 +186,25 @@ def do_sprite(image, how_many_frame, which_frame, scale, color):
     return frame
 
 
+def clock_support():
+    global delta_time
+    # const.framerate = 60
+    # dt show how many milliseconds have passed since the previous call
+    # the program will never run at more than const.framerate frames per second
+    delta_time = clock.tick(const.framerate)
+
+
+def frame_animation(how_many_frame, speed):
+    global program_counter, delta_time, i
+    if program_counter >= delta_time/speed:
+        program_counter = 0
+        i += 1
+
+    if i == how_many_frame:
+        i = 0
+    return i
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 generate_walls()
@@ -186,11 +212,11 @@ counter = []
 name_of_log("My GAmE")
 i = 0
 running = True
-
 while running:
 
     ### CLOCK ###
-    dt = clock.tick(const.framerate)
+    clock_support()
+
     ### EVENTS ###
     if play_loop_music:
         play_music(music_off_on)
@@ -221,7 +247,8 @@ while running:
 
     # Move Walls
     for wall in walls:
-        wall.move_ip(-const.wall_speed * dt, 0)
+        const.y_no_mpve = 0
+        wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
 
     ### DRAWING ####
 
@@ -230,7 +257,7 @@ while running:
 
     # Draw walls
     for wall in walls:
-        pygame.draw.rect(window, const.color_rect, wall)
+        pygame.draw.rect(window, const.color_of_walls, wall)
 
     # Draw character
     move_character()
@@ -238,17 +265,10 @@ while running:
     show_character_statistics()
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
 
-    if False:
-        if i == 3:
-            i = 0
-        character = do_sprite('imgs\\flappy_sprite.png',
-                              3, i, const.scale, 'RED')
-        window.blit(character, (0, 0))
-        i += 1
-
     # Update the display
     pygame.display.update()
-
+    # how many times the program has been run
+    program_counter += 1
 # Quit pygame
 pygame.quit()
 '''

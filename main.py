@@ -1,10 +1,8 @@
-from re import I
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
 import threading  # manage threads in Operation System
-# for import music
-from pygame import mixer
+from pygame import mixer  # for import music
 
 # initialize pygame
 pygame.init()
@@ -18,9 +16,18 @@ program_counter = 0
 drawn_frame = False
 delta_time = 0
 
+# ------------for player----------------------------
 # collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
+# global variable, current player frame in animation
+current_player_frame = 0
+# global variable, character death animation
+kill_player = False
+# global variable, character death sound, it allows to create the effect one at a time
+play_loop_kill_player_sound = True
+# --------------------------------------------------
+
 # list containing all walls
 walls = []
 
@@ -34,9 +41,9 @@ music_off_on = False
 def play_music(play):
     # Initialize Mixer in the program
     mixer.init()
-    mixer.music.load('music/bensound-summer_ogg_music.ogg')
+    pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')
     if play:
-        mixer.music.play()
+        pygame.mixer.music.play(-1)
 
 
 def name_of_log(name_str):
@@ -120,9 +127,12 @@ def move_character():
 
 
 def drawn_character():
-    change_frame = frame_animation(3, 3)
+    global kill_player
+    # zeo is not included, we count from "1"
+    how_many_frame = 4
+    change_frame = frame_animation(kill_player, how_many_frame, 3)
     character_frame = do_sprite('imgs\\flappy_sprite.png',
-                                3, change_frame, const.scale, 'RED').convert_alpha()
+                                how_many_frame, change_frame, const.scale, 'RED').convert_alpha()
     rotate_character = pygame.transform.rotate(character_frame, const.rotate)
     window.blit(rotate_character, (pos_x-(rotate_character.get_width()/2),
                 pos_y-(rotate_character.get_height()/2)))
@@ -133,7 +143,10 @@ def drawn_character():
                                  rotate_character.get_width(), rotate_character.get_height())
     mask_character = pygame.mask.from_surface(rotate_character)
 
+    # if there is no collision
+    kill_player = False
     color1 = (0, 255, 0)
+
     for wall in walls:
         surf_wall = pygame.Surface((wall[2], wall[3])).convert_alpha()
         mask_wall = pygame.mask.from_surface(surf_wall)
@@ -141,7 +154,10 @@ def drawn_character():
         offset_y = wall[1] - rect_character[1]
 
         if mask_character.overlap(mask_wall, (offset_x, offset_y)):
+            # color for Box collision
             color1 = (255, 0, 0)
+            kill_player = True
+
     # Box for collision
     pygame.draw.rect(window, color1, rect_character, 1)
 
@@ -194,15 +210,34 @@ def clock_support():
     delta_time = clock.tick(const.framerate)
 
 
-def frame_animation(how_many_frame, speed):
-    global program_counter, delta_time, i
+def frame_animation(will_player_be_killed, how_many_frame, speed):
+    global program_counter, delta_time, current_player_frame
+
     if program_counter >= delta_time/speed:
         program_counter = 0
-        i += 1
+        if not will_player_be_killed:
+            current_player_frame += 1
 
-    if i == how_many_frame:
-        i = 0
-    return i
+            if current_player_frame >= how_many_frame - 1:
+                current_player_frame = 0
+        else:
+            # the player is dead
+            current_player_frame = 3
+    return current_player_frame
+
+
+def player_death_sound_event():
+    global play_loop_kill_player_sound, kill_player
+
+    if play_loop_kill_player_sound and kill_player:
+        sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
+
+        effect = pygame.mixer.Sound(sound_list_tag[1])
+        effect.play()
+        play_loop_kill_player_sound = False
+    # refresh the sound of death
+    if not play_loop_kill_player_sound and not kill_player:
+        play_loop_kill_player_sound = True
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
@@ -210,7 +245,6 @@ def frame_animation(how_many_frame, speed):
 generate_walls()
 counter = []
 name_of_log("My GAmE")
-i = 0
 running = True
 while running:
 
@@ -221,6 +255,9 @@ while running:
     if play_loop_music:
         play_music(music_off_on)
         play_loop_music = False
+
+    # death sound effect
+    player_death_sound_event()
 
     # event handling
     for event in pygame.event.get():
@@ -269,6 +306,8 @@ while running:
     pygame.display.update()
     # how many times the program has been run
     program_counter += 1
+
+
 # Quit pygame
 pygame.quit()
 '''

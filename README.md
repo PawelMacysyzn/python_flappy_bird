@@ -21,7 +21,7 @@
 
 <!-- Image about -->
 <p align="center">
-    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/main_screen_of_the_game.png?raw=true" alt="">
+    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/main_screen_of_the_game.png?raw=true" alt="Grafiki nie ma" width="500" height="500">
 </p>
 
 ### Built With

@@ -21,7 +21,7 @@
 
 <!-- Image about -->
 <p align="center">
-    <img src="materials/" alt="ss">
+    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/main_screen_of_the_game.png?raw=true" alt="">
 </p>
 
 ### Built With

@@ -1,4 +1,8 @@
-windows_size = (800,800) # width X height
+from multiprocessing import dummy
+
+
+dummy_x = 800
+windows_size = (dummy_x,dummy_x) # width X height
 corridor_range = (150, windows_size[1] - 150) #(lower limit, (height - 100) "upper limit")
 corridor_size = 250
 wall_width = 60

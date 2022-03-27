@@ -2,7 +2,7 @@ import pygame  # game library
 import const  # declaration of constants
 from random import randint
 import threading  # manage threads in Operation System
-from pygame import mixer  # for import music
+from pygame import Surface, mixer  # for import music
 
 # initialize pygame
 pygame.init()
@@ -52,6 +52,8 @@ def name_of_log(name_str):
 
 
 def generate_walls():
+    # the speed of creating walls
+    const.new_wall_timer = 2
     threading.Timer(const.new_wall_timer, generate_walls).start()
     position = randint(const.corridor_range[0], const.corridor_range[1])
     # upper wall - x position, y position, x size, y size
@@ -74,8 +76,8 @@ def show_character_statistics():
     label_4 = font.render(str(pos_y), 1, (0, 0, 0))
     label_5 = font.render("R:", 1, (0, 0, 0))
     label_6 = font.render(str(const.rotate), 1, (0, 0, 0))
-    label_7 = font.render("V:", 1, (0, 0, 0))
-    label_8 = font.render(str(0), 1, (0, 0, 0))
+    label_7 = font.render("FPS:", 1, (0, 0, 0))
+    label_8 = font.render(str("{:.1f}".format(clock.get_fps())), 1, (0, 0, 0))
 
     # next stat X
     window.blit(label_1, (const.windows_size[0] - position_x, position_y))
@@ -93,7 +95,8 @@ def show_character_statistics():
         label_6, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
     # next stat V
     position_x -= next_width
-    window.blit(label_7, (const.windows_size[0] - position_x, position_y + 50))
+    window.blit(
+        label_7, (const.windows_size[0] - position_x - 25, position_y + 50))
     window.blit(
         label_8, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
 
@@ -208,6 +211,9 @@ def clock_support():
     # dt show how many milliseconds have passed since the previous call
     # the program will never run at more than const.framerate frames per second
     delta_time = clock.tick(const.framerate)
+    # print(delta_time, " ms")
+    # print("{:.1f} FPS".format(clock.get_fps()))
+    pass
 
 
 def frame_animation(will_player_be_killed, how_many_frame, speed):
@@ -240,10 +246,37 @@ def player_death_sound_event():
         play_loop_kill_player_sound = True
 
 
+def moving_background():
+    global backgroud_poz_x, load_once, Background_surface
+    if True:  # problems with the smoothness of the game
+        if load_once:
+            Background_surface = pygame.image.load('imgs\\background_test.png')
+            # first and second surface poz
+            backgroud_poz_x.append(0)
+            backgroud_poz_x.append(0)
+            backgroud_poz_x.append(0)
+            # end
+            load_once = False
+
+    window.blit(Background_surface, (backgroud_poz_x[0], 0))
+    # window.width == 800 - backgroud_poz_x[0]
+    backgroud_poz_x[1] = Background_surface.get_width() + backgroud_poz_x[0]
+    window.blit(Background_surface, (backgroud_poz_x[1], 0))
+    backgroud_poz_x[2] = Background_surface.get_width()*2 + backgroud_poz_x[0]
+    window.blit(Background_surface, (backgroud_poz_x[2], 0))
+    # first surface moving
+    backgroud_poz_x[0] -= 1
+    if backgroud_poz_x[1] == 0:
+        backgroud_poz_x[0] = 0
+    # print(backgroud_poz_x[0], " ",backgroud_poz_x[1], " ", backgroud_poz_x[2])
+    pass
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 generate_walls()
-counter = []
+load_once, Background_surface = True, Surface
+counter, backgroud_poz_x = [], []
 name_of_log("My GAmE")
 running = True
 while running:
@@ -276,7 +309,7 @@ while running:
     ### MATHS ###
 
     # Remove walls after they reach end of screen
-    #walls = [wall for wall in walls if wall.right >= 0]
+    walls = [wall for wall in walls if wall.right >= 0]
 
     for wall in walls:
         if wall.right < 0:
@@ -284,17 +317,21 @@ while running:
 
     # Move Walls
     for wall in walls:
+        # pos y no move
         const.y_no_mpve = 0
         wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
 
     ### DRAWING ####
 
     # Fill the background
-    window.fill(const.color_background)
+    # window.fill(const.color_background)
+
+    moving_background()
 
     # Draw walls
-    for wall in walls:
-        pygame.draw.rect(window, const.color_of_walls, wall)
+    if True:
+        for wall in walls:
+            pygame.draw.rect(window, const.color_of_walls, wall)
 
     # Draw character
     move_character()

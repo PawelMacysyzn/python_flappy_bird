@@ -53,7 +53,7 @@ def name_of_log(name_str):
 
 def generate_walls():
     # the speed of creating walls
-    const.new_wall_timer = 2
+    const.new_wall_timer = 10/10
     threading.Timer(const.new_wall_timer, generate_walls).start()
     position = randint(const.corridor_range[0], const.corridor_range[1])
     # upper wall - x position, y position, x size, y size
@@ -62,6 +62,7 @@ def generate_walls():
     # lower wall - x position, y position, x size, y size
     walls.append(pygame.Rect(
         const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
+    # print(*walls,len(walls))
 
 
 def show_character_statistics():
@@ -273,6 +274,9 @@ def moving_background():
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
+# To delete
+
+
 # Preparation functions
 generate_walls()
 load_once, Background_surface = True, Surface
@@ -289,7 +293,7 @@ while running:
         play_music(music_off_on)
         play_loop_music = False
 
-    # death sound effect
+    # death sound effectw
     player_death_sound_event()
 
     # event handling
@@ -324,14 +328,27 @@ while running:
     ### DRAWING ####
 
     # Fill the background
-    # window.fill(const.color_background)
-
-    moving_background()
+    # const.no_background = True
+    if const.no_background:
+        window.fill(const.color_background)
+    else:
+        # moving_background()
+        threading.Thread(target=moving_background, args=[]).start()
 
     # Draw walls
     if True:
         for wall in walls:
             pygame.draw.rect(window, const.color_of_walls, wall)
+            obstacle_image = pygame.image.load(
+                "imgs\pipe-green.png").convert_alpha()
+            obstacle_image = pygame.transform.scale(
+                obstacle_image, (const.wall_width, wall[3]))
+            if wall[1] == 0:
+                obstacle_image = pygame.transform.flip(
+                    obstacle_image, False, True)
+            window.blit(obstacle_image, (wall[0], wall[1]))
+            print()
+            pass
 
     # Draw character
     move_character()
@@ -343,6 +360,9 @@ while running:
     pygame.display.update()
     # how many times the program has been run
     program_counter += 1
+
+    # to delete
+    # pygame.time.delay(5)
 
 
 # Quit pygame

@@ -1,4 +1,3 @@
-from multiprocessing import dummy
 
 
 dummy_x = 800
@@ -10,6 +9,8 @@ wall_speed = 100
 new_wall_timer = 3
 framerate = 60
 game_speed = 1
+no_background = False
+
 
 scale = 0.3
 rotate = 0

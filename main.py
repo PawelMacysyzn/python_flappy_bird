@@ -53,8 +53,11 @@ def name_of_log(name_str):
 
 def generate_walls():
     # the speed of creating walls
-    const.new_wall_timer = 10/10
-    threading.Timer(const.new_wall_timer, generate_walls).start()
+    global trig_generate_obs
+    const.new_wall_timer = 1.5
+
+    # recursion, After "const.new_wall_timer: seconds fun generate_walls() will be invoke
+    # threading.Timer(const.new_wall_timer, generate_walls).start()
     position = randint(const.corridor_range[0], const.corridor_range[1])
     # upper wall - x position, y position, x size, y size
     walls.append(pygame.Rect(
@@ -63,6 +66,20 @@ def generate_walls():
     walls.append(pygame.Rect(
         const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
     # print(*walls,len(walls))
+    pass
+
+
+def draws_obstacles():
+    for wall in walls:
+        pygame.draw.rect(window, const.color_of_walls, wall)
+        obstacle_image = pygame.image.load(
+            "imgs\pipe-green.png").convert_alpha()
+        obstacle_image = pygame.transform.scale(
+            obstacle_image, (const.wall_width, wall[3]))
+        if wall[1] == 0:
+            obstacle_image = pygame.transform.flip(
+                obstacle_image, False, True)
+        window.blit(obstacle_image, (wall[0], wall[1]))
 
 
 def show_character_statistics():
@@ -251,9 +268,9 @@ def moving_background():
     global backgroud_poz_x, load_once, Background_surface
     if True:  # problems with the smoothness of the game
         if load_once:
-            Background_surface = pygame.image.load('imgs\\background_test.png')
+            Background_surface = pygame.image.load(
+                'imgs\\background_full_width.png')
             # first and second surface poz
-            backgroud_poz_x.append(0)
             backgroud_poz_x.append(0)
             backgroud_poz_x.append(0)
             # end
@@ -263,22 +280,22 @@ def moving_background():
     # window.width == 800 - backgroud_poz_x[0]
     backgroud_poz_x[1] = Background_surface.get_width() + backgroud_poz_x[0]
     window.blit(Background_surface, (backgroud_poz_x[1], 0))
-    backgroud_poz_x[2] = Background_surface.get_width()*2 + backgroud_poz_x[0]
-    window.blit(Background_surface, (backgroud_poz_x[2], 0))
     # first surface moving
     backgroud_poz_x[0] -= 1
     if backgroud_poz_x[1] == 0:
         backgroud_poz_x[0] = 0
-    # print(backgroud_poz_x[0], " ",backgroud_poz_x[1], " ", backgroud_poz_x[2])
     pass
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
-# To delete
-
-
 # Preparation functions
-generate_walls()
+threading.Thread(target=generate_walls, args=[]).start()
+
+# test
+image_test = pygame.image.load('imgs\\background_full_width.png')
+print(image_test)
+
+
 load_once, Background_surface = True, Surface
 counter, backgroud_poz_x = [], []
 name_of_log("My GAmE")
@@ -312,9 +329,13 @@ while running:
 
     ### MATHS ###
 
-    # Remove walls after they reach end of screen
-    walls = [wall for wall in walls if wall.right >= 0]
+    # Generate walls ever x
+    x = 400
+    if len(walls) > 0:
+        if walls[len(walls)-1].left < window.get_width() - x:
+            threading.Thread(target=generate_walls, args=[]).start()
 
+    # Remove walls after they reach end of screen
     for wall in walls:
         if wall.right < 0:
             walls.remove(wall)
@@ -331,29 +352,22 @@ while running:
     # const.no_background = True
     if const.no_background:
         window.fill(const.color_background)
+        window.blit(image_test, (0, 0))
+
     else:
         # moving_background()
         threading.Thread(target=moving_background, args=[]).start()
 
+    # test
+
     # Draw walls
-    if True:
-        for wall in walls:
-            pygame.draw.rect(window, const.color_of_walls, wall)
-            obstacle_image = pygame.image.load(
-                "imgs\pipe-green.png").convert_alpha()
-            obstacle_image = pygame.transform.scale(
-                obstacle_image, (const.wall_width, wall[3]))
-            if wall[1] == 0:
-                obstacle_image = pygame.transform.flip(
-                    obstacle_image, False, True)
-            window.blit(obstacle_image, (wall[0], wall[1]))
-            print()
-            pass
+    threading.Thread(target=draws_obstacles, args=[]).start()
 
     # Draw character
     move_character()
     drawn_character()
     show_character_statistics()
+
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
 
     # Update the display
@@ -362,7 +376,7 @@ while running:
     program_counter += 1
 
     # to delete
-    # pygame.time.delay(5)
+    pygame.time.delay(1)
 
 
 # Quit pygame

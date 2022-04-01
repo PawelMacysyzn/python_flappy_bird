@@ -2,7 +2,7 @@ import pygame  # game library
 import const  # declaration of constants
 from random import randint
 import threading  # manage threads in Operation System
-from pygame import Surface, mixer  # for import music
+from pygame import mixer  # for import music
 
 # initialize pygame
 pygame.init()
@@ -17,6 +17,8 @@ drawn_frame = False
 delta_time = 0
 
 # ------------for player----------------------------
+# list containing all frames
+character_frames = []
 # collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
@@ -26,16 +28,23 @@ current_player_frame = 0
 kill_player = False
 # global variable, character death sound, it allows to create the effect one at a time
 play_loop_kill_player_sound = True
-# --------------------------------------------------
 
+# ------------for walls----------------------------
 # list containing all walls
 walls = []
+walls_image = []
+
+
+# ------------for butons-----------------------------
+# list containing all state of button mute
+buton_mute_image = []
 
 hit_buton_mute = False
 # allows to play music only once in a game loop
 play_loop_music = True
 # turns music on and off
 music_off_on = False
+# ---------------------------------------------------
 
 
 def play_music(play):
@@ -51,13 +60,7 @@ def name_of_log(name_str):
     pygame.display.set_caption(name_str.upper())
 
 
-def generate_walls():
-    # the speed of creating walls
-    global trig_generate_obs
-    const.new_wall_timer = 1.5
-
-    # recursion, After "const.new_wall_timer: seconds fun generate_walls() will be invoke
-    # threading.Timer(const.new_wall_timer, generate_walls).start()
+def once_generate_walls():
     position = randint(const.corridor_range[0], const.corridor_range[1])
     # upper wall - x position, y position, x size, y size
     walls.append(pygame.Rect(
@@ -65,21 +68,22 @@ def generate_walls():
     # lower wall - x position, y position, x size, y size
     walls.append(pygame.Rect(
         const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
-    # print(*walls,len(walls))
-    pass
 
 
-def draws_obstacles():
+def generate_walls_with_gap(gap):
+    if len(walls) > 0:
+        if walls[len(walls)-1].left < window.get_width() - gap:
+            threading.Thread(target=once_generate_walls, args=[]).start()
+
+
+def draws_obstacles(obstacle_image_down, obstacle_image_up):
     for wall in walls:
-        pygame.draw.rect(window, const.color_of_walls, wall)
-        obstacle_image = pygame.image.load(
-            "imgs\pipe-green.png").convert_alpha()
-        obstacle_image = pygame.transform.scale(
-            obstacle_image, (const.wall_width, wall[3]))
+        # draw pipes shadows
+        # pygame.draw.rect(window, const.color_of_walls, wall)
         if wall[1] == 0:
-            obstacle_image = pygame.transform.flip(
-                obstacle_image, False, True)
-        window.blit(obstacle_image, (wall[0], wall[1]))
+            window.blit(obstacle_image_up, (wall[0], wall[3] - 800))
+        else:
+            window.blit(obstacle_image_down, (wall[0], wall[1]))
 
 
 def show_character_statistics():
@@ -140,7 +144,7 @@ def move_character():
             # up
             pos_y -= 7 * multiplier
             rotate(1)
-    else:
+    else:  # No kay_space
         if ((pos_y <= const.windows_size[1])):
             # down
             pos_y += 2 * multiplier
@@ -149,12 +153,17 @@ def move_character():
 
 def drawn_character():
     global kill_player
-    # zeo is not included, we count from "1"
     how_many_frame = 4
-    change_frame = frame_animation(kill_player, how_many_frame, 3)
-    character_frame = do_sprite('imgs\\flappy_sprite.png',
-                                how_many_frame, change_frame, const.scale, 'RED').convert_alpha()
-    rotate_character = pygame.transform.rotate(character_frame, const.rotate)
+
+    player_frame_animation(kill_player, how_many_frame, 3)
+
+    if True:
+        rotate_character = pygame.transform.rotate(
+            character_frames[current_player_frame], const.rotate)
+    else:
+        rotate_character = character_frames[current_player_frame]
+
+    # drwan character
     window.blit(rotate_character, (pos_x-(rotate_character.get_width()/2),
                 pos_y-(rotate_character.get_height()/2)))
 
@@ -184,10 +193,14 @@ def drawn_character():
 
 
 def drawn_buton(pos_mouse, music_off_on):
-    scale = 1
     buton_mute_pos = (750, 750)
-    buton_mute_surf = do_sprite(
-        'imgs\mute_sprite.png', 2, music_off_on, scale, 'WHITE')
+
+    if music_off_on:
+        buton_mute_surf = buton_mute_image[0]
+        pass
+    else:
+        buton_mute_surf = buton_mute_image[1]
+        pass
 
     buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
     window.blit(buton_mute_surf, buton_mute_rect)
@@ -200,27 +213,26 @@ def drawn_buton(pos_mouse, music_off_on):
         return False
 
 
-def get_image(sheet, frame, width, height, scale, color):
-    image = pygame.Surface((width, height)).convert_alpha()
-    image.blit(sheet, (0, 0), ((frame*width), 0, width, height))
-    image = pygame.transform.scale(image, (width*scale, height*scale))
-    image.set_colorkey(color)
-    return image
-
-
-def do_sprite(image, how_many_frame, which_frame, scale, color):
+def do_sprite(image, how_many_frame, which_frame, scale, alfa_color):
     spride_sheet_image = pygame.image.load(image).convert_alpha()
-    if color.upper() == 'WHITE':
-        color = (255, 255, 255)
-    elif color.upper() == 'BLACK':
-        color = (0, 0, 0)
-    elif color.upper() == 'RED':
-        color = (255, 0, 0)
+
+    if alfa_color.upper() == 'WHITE':
+        alfa_color = (255, 255, 255)
+    elif alfa_color.upper() == 'BLACK':
+        alfa_color = (0, 0, 0)
+    elif alfa_color.upper() == 'RED':
+        alfa_color = (255, 0, 0)
+
     width = spride_sheet_image.get_width()/how_many_frame
     height = spride_sheet_image.get_height()
-    frame = get_image(spride_sheet_image, which_frame,
-                      width, height, scale, color)
-    return frame
+
+    image = pygame.Surface((width, height)).convert_alpha()
+    image.blit(spride_sheet_image, (0, 0),
+               ((which_frame*width), 0, width, height))
+    image = pygame.transform.scale(image, (width*scale, height*scale))
+    image.set_colorkey(alfa_color)
+
+    return image
 
 
 def clock_support():
@@ -234,7 +246,7 @@ def clock_support():
     pass
 
 
-def frame_animation(will_player_be_killed, how_many_frame, speed):
+def player_frame_animation(will_player_be_killed, how_many_frame, speed):
     global program_counter, delta_time, current_player_frame
 
     if program_counter >= delta_time/speed:
@@ -247,7 +259,6 @@ def frame_animation(will_player_be_killed, how_many_frame, speed):
         else:
             # the player is dead
             current_player_frame = 3
-    return current_player_frame
 
 
 def player_death_sound_event():
@@ -264,22 +275,33 @@ def player_death_sound_event():
         play_loop_kill_player_sound = True
 
 
+def remove_walls():
+    for wall in walls:
+        if wall.right < 0:
+            walls.remove(wall)
+
+
+def move_walls():
+    for wall in walls:
+        # pos y no move
+        const.y_no_mpve = 0
+        wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
+
+
 def moving_background():
-    global backgroud_poz_x, load_once, Background_surface
+    global backgroud_poz_x, load_once, background_surface
     if True:  # problems with the smoothness of the game
         if load_once:
-            Background_surface = pygame.image.load(
-                'imgs\\background_full_width.png')
             # first and second surface poz
             backgroud_poz_x.append(0)
             backgroud_poz_x.append(0)
             # end
             load_once = False
 
-    window.blit(Background_surface, (backgroud_poz_x[0], 0))
+    window.blit(background_surface, (backgroud_poz_x[0], 0))
     # window.width == 800 - backgroud_poz_x[0]
-    backgroud_poz_x[1] = Background_surface.get_width() + backgroud_poz_x[0]
-    window.blit(Background_surface, (backgroud_poz_x[1], 0))
+    backgroud_poz_x[1] = background_surface.get_width() + backgroud_poz_x[0]
+    window.blit(background_surface, (backgroud_poz_x[1], 0))
     # first surface moving
     backgroud_poz_x[0] -= 1
     if backgroud_poz_x[1] == 0:
@@ -287,18 +309,47 @@ def moving_background():
     pass
 
 
+def background_on_off(background_yes):
+    if background_yes:
+        threading.Thread(target=moving_background, args=[]).start()
+    else:
+        window.fill(const.color_background)
+
+
+def image_walls_preload():
+    walls_image.append(pygame.image.load(
+        "imgs\pipe-green.png").convert_alpha())
+    walls_image.append(pygame.transform.flip(walls_image[0], False, True))
+
+
+def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
+    for frame in range(how_many_frame):
+        sprite_list.append(do_sprite(image,
+                                     how_many_frame, frame, scale, alfa_color).convert_alpha())
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
-threading.Thread(target=generate_walls, args=[]).start()
+threading.Thread(target=once_generate_walls, args=[]).start()
 
-# test
-image_test = pygame.image.load('imgs\\background_full_width.png')
-print(image_test)
+image_walls_preload()
+
+background_surface = pygame.image.load(
+    'imgs\\background_full_width.png').convert_alpha()
+
+# character sprite preload
+sprite_image_preload(
+    character_frames, 'imgs\\flappy_sprite.png', 4, const.scale, 'RED')
 
 
-load_once, Background_surface = True, Surface
+# buton_mute sprite preload
+sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'WHITE')
+
+
+load_once = True
 counter, backgroud_poz_x = [], []
 name_of_log("My GAmE")
+
 running = True
 while running:
 
@@ -329,39 +380,23 @@ while running:
 
     ### MATHS ###
 
-    # Generate walls ever x
-    x = 400
-    if len(walls) > 0:
-        if walls[len(walls)-1].left < window.get_width() - x:
-            threading.Thread(target=generate_walls, args=[]).start()
+    # Generate walls
+    generate_walls_with_gap(600)
 
     # Remove walls after they reach end of screen
-    for wall in walls:
-        if wall.right < 0:
-            walls.remove(wall)
+    remove_walls()
 
     # Move Walls
-    for wall in walls:
-        # pos y no move
-        const.y_no_mpve = 0
-        wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
+    move_walls()
 
     ### DRAWING ####
 
     # Fill the background
-    # const.no_background = True
-    if const.no_background:
-        window.fill(const.color_background)
-        window.blit(image_test, (0, 0))
-
-    else:
-        # moving_background()
-        threading.Thread(target=moving_background, args=[]).start()
-
-    # test
+    background_on_off(True)
 
     # Draw walls
-    threading.Thread(target=draws_obstacles, args=[]).start()
+    threading.Thread(target=draws_obstacles, args=[
+                     walls_image[0], walls_image[1]]).start()
 
     # Draw character
     move_character()
@@ -371,7 +406,7 @@ while running:
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
 
     # Update the display
-    pygame.display.update()
+    pygame.display.flip()
     # how many times the program has been run
     program_counter += 1
 

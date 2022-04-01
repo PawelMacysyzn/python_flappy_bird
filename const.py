@@ -6,7 +6,6 @@ corridor_range = (150, windows_size[1] - 150) #(lower limit, (height - 100) "upp
 corridor_size = 250
 wall_width = 60
 wall_speed = 100
-new_wall_timer = 3
 framerate = 60
 game_speed = 1
 no_background = False

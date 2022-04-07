@@ -153,22 +153,30 @@ def show_character_statistics():
 def rotate(var, multip_1, multip_2):
     max_rotate_plus = 25
     max_rotate_minus = -45
+    # leveling = 1
+
 
     if (var > 0):
         if (const.rotate <= max_rotate_plus):
             const.rotate += 1 * multip_1
-    else:
+    elif (var < 0):
         if (const.rotate >= max_rotate_minus):
             const.rotate -= 1 * multip_2
+    else:
+        const.rotate = 0
+        # pass
 
 
 def move_character():
     keys = pygame.key.get_pressed()
+    top_edge = 25
+    bottom_edge = window.get_height() - 34 # 800 - 35
     gravity_constant = 1/2
-    power_jump = 2
-    set_counter = 10
-    x = 2.5
-    y = 1.7
+    power_jump = 1.5
+    set_counter = 8
+    x = 2.85 * 2
+    y = 1.05 * 2
+    rotation = None
     global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
     global key_space_down, key_space_down_before
     # global i
@@ -179,6 +187,8 @@ def move_character():
         if not key_space_down_before:
             # i+=1
             # print("Spacja: ",i)
+            # necessary for the proper operation of the jump
+            speed_y = 0
             key_space_down_before = True
             p_trig_key_space = True
     else:
@@ -195,16 +205,25 @@ def move_character():
     # if K_SPACE is trig
     if p_trig_key_space:
         if speed_y > -16:
-            speed_y -= 1 * power_jump
+            if pos_y > top_edge:
+                speed_y -= 1 * power_jump
         pos_y += speed_y
-        rotate(1, power_jump*x, gravity_constant*y)
+        rotation = 1
+        # rotate(1, power_jump*x, gravity_constant*y)
 
     else:  # No kay_space
         if speed_y < 12:
             speed_y += 1 * gravity_constant
-        if pos_y < window.get_height()-30:
+        if pos_y < bottom_edge:
             pos_y += speed_y
-        rotate(0, power_jump*x, gravity_constant*y)
+            rotation = -1
+        else:
+            rotation = 0
+            # rotate(0, power_jump*x, gravity_constant*y)
+        # rotate(-1, power_jump*x, gravity_constant*y)
+    
+    rotate(rotation, power_jump*x, gravity_constant*y)
+
 
 
 def drawn_character():

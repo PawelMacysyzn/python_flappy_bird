@@ -19,6 +19,10 @@ delta_time = 0
 # ------------for player----------------------------
 # list containing all frames
 character_frames = []
+speed_y = 0
+jump_y_bool = False
+counter_jump = 0
+p_trig_key_space = False
 # collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
@@ -44,6 +48,13 @@ hit_buton_mute = False
 play_loop_music = True
 # turns music on and off
 music_off_on = False
+# ------------for others-----------------------------
+trig_screenshot = True
+i = 0
+
+key_space_down = False
+key_space_up = False
+key_space_down_before = False
 # ---------------------------------------------------
 
 
@@ -95,11 +106,15 @@ def show_character_statistics():
     label_1 = font.render("X:", 1, (0, 0, 0))
     label_2 = font.render(str(pos_x), 1, (0, 0, 0))
     label_3 = font.render("Y:", 1, (0, 0, 0))
-    label_4 = font.render(str(pos_y), 1, (0, 0, 0))
+    label_4 = font.render(str("{:.1f}".format(pos_y)), 1, (0, 0, 0))
     label_5 = font.render("R:", 1, (0, 0, 0))
-    label_6 = font.render(str(const.rotate), 1, (0, 0, 0))
+    label_6 = font.render(str("{:.1f}".format(const.rotate)), 1, (0, 0, 0))
     label_7 = font.render("FPS:", 1, (0, 0, 0))
     label_8 = font.render(str("{:.1f}".format(clock.get_fps())), 1, (0, 0, 0))
+    label_9 = font.render("speed_y:", 1, (0, 0, 0))
+    label_10 = font.render(str("{:.1f}".format(speed_y)), 1, (0, 0, 0))
+    label_11 = font.render("counter_jump:", 1, (0, 0, 0))
+    label_12 = font.render(str(counter_jump), 1, (0, 0, 0))
 
     # next stat X
     window.blit(label_1, (const.windows_size[0] - position_x, position_y))
@@ -121,34 +136,75 @@ def show_character_statistics():
         label_7, (const.windows_size[0] - position_x - 25, position_y + 50))
     window.blit(
         label_8, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
+    # next stat speed_y
+    position_x += next_width
+    window.blit(
+        label_9, (const.windows_size[0] - position_x, position_y + 100))
+    window.blit(
+        label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y + 100))
+    # next stat counter_jump
+    position_x += next_width
+    window.blit(
+        label_11, (const.windows_size[0] - position_x + 100, position_y + 150))
+    window.blit(
+        label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y + 150))
 
 
-def rotate(var):
-    multip = 2
-    jump_ch = 5
-    max_rotate = 35
+def rotate(var, multip_1, multip_2):
+    max_rotate_plus = 25
+    max_rotate_minus = -45
+
     if (var > 0):
-        if (const.rotate <= max_rotate):
-            const.rotate += 1 * multip * jump_ch
+        if (const.rotate <= max_rotate_plus):
+            const.rotate += 1 * multip_1
     else:
-        if (const.rotate >= -max_rotate):
-            const.rotate -= 1 * multip
+        if (const.rotate >= max_rotate_minus):
+            const.rotate -= 1 * multip_2
 
 
 def move_character():
     keys = pygame.key.get_pressed()
-    multiplier = 1
-    global pos_y
+    gravity_constant = 1/2
+    power_jump = 2
+    set_counter = 10
+    x = 2.5
+    y = 1.7
+    global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
+    global key_space_down, key_space_down_before
+    # global i
+
+    # the button is performed only once per press
     if keys[pygame.K_SPACE]:
-        if pos_y >= 0:
-            # up
-            pos_y -= 7 * multiplier
-            rotate(1)
+        key_space_down = True
+        if not key_space_down_before:
+            # i+=1
+            # print("Spacja: ",i)
+            key_space_down_before = True
+            p_trig_key_space = True
+    else:
+        key_space_down = False
+        key_space_down_before = False
+
+    # counter to hold down the button
+    if p_trig_key_space:
+        counter_jump += 1
+    if counter_jump > set_counter:
+        counter_jump = 0
+        p_trig_key_space = False
+
+    # if K_SPACE is trig
+    if p_trig_key_space:
+        if speed_y > -16:
+            speed_y -= 1 * power_jump
+        pos_y += speed_y
+        rotate(1, power_jump*x, gravity_constant*y)
+
     else:  # No kay_space
-        if ((pos_y <= const.windows_size[1])):
-            # down
-            pos_y += 2 * multiplier
-            rotate(0)
+        if speed_y < 12:
+            speed_y += 1 * gravity_constant
+        if pos_y < window.get_height()-30:
+            pos_y += speed_y
+        rotate(0, power_jump*x, gravity_constant*y)
 
 
 def drawn_character():
@@ -328,6 +384,18 @@ def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
                                      how_many_frame, frame, scale, alfa_color).convert_alpha())
 
 
+def screenshot_fun(time):
+    global trig_screenshot
+
+    def screenshot():
+        pygame.image.save(window, "imgs\page_presentation\screenshot.jpeg")
+        print("Screenshot !")
+
+    if trig_screenshot:
+        threading.Timer(time, screenshot).start()
+        trig_screenshot = False
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 threading.Thread(target=once_generate_walls, args=[]).start()
@@ -399,11 +467,14 @@ while running:
                      walls_image[0], walls_image[1]]).start()
 
     # Draw character
+    # move_character()
     move_character()
     drawn_character()
     show_character_statistics()
 
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
+
+    screenshot_fun(0.5)
 
     # Update the display
     pygame.display.flip()

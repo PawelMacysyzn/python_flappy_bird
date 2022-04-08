@@ -23,6 +23,9 @@ speed_y = 0
 jump_y_bool = False
 counter_jump = 0
 p_trig_key_space = False
+
+score, score_trig, score_trig_before, p_trig_score = 0, False, False, False
+
 # collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
@@ -150,11 +153,19 @@ def show_character_statistics():
         label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y + 150))
 
 
+def show_score():
+    size_font = 100
+    font = pygame.font.SysFont('comicsansms', size_font)
+
+    label_1 = font.render(str(score), 1, (0, 0, 0))
+
+    window.blit(label_1, (window.get_width()/2, window.get_height()/25))
+
+
 def rotate(var, multip_1, multip_2):
     max_rotate_plus = 25
     max_rotate_minus = -45
     # leveling = 1
-
 
     if (var > 0):
         if (const.rotate <= max_rotate_plus):
@@ -164,13 +175,12 @@ def rotate(var, multip_1, multip_2):
             const.rotate -= 1 * multip_2
     else:
         const.rotate = 0
-        # pass
 
 
 def move_character():
     keys = pygame.key.get_pressed()
     top_edge = 25
-    bottom_edge = window.get_height() - 34 # 800 - 35
+    bottom_edge = window.get_height() - 34  # 800 - 35
     gravity_constant = 1/2
     power_jump = 1.5
     set_counter = 8
@@ -221,9 +231,8 @@ def move_character():
             rotation = 0
             # rotate(0, power_jump*x, gravity_constant*y)
         # rotate(-1, power_jump*x, gravity_constant*y)
-    
-    rotate(rotation, power_jump*x, gravity_constant*y)
 
+    rotate(rotation, power_jump*x, gravity_constant*y)
 
 
 def drawn_character():
@@ -415,6 +424,25 @@ def screenshot_fun(time):
         trig_screenshot = False
 
 
+def count_points(do_fun):
+    global score, score_trig, score_trig_before, p_trig_score, walls
+    if do_fun:
+        if walls[0].left < pos_x and walls[0].left > 0:
+            # print(walls[0].left)
+            score_trig = True
+            if not score_trig_before:
+                score_trig_before = True
+                p_trig_score = True
+        else:
+            score_trig = False
+            score_trig_before = False
+
+        if p_trig_score:
+            score += 1
+            # print("Score: ",score)
+            p_trig_score = False
+
+
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 threading.Thread(target=once_generate_walls, args=[]).start()
@@ -436,6 +464,7 @@ sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'WHITE')
 load_once = True
 counter, backgroud_poz_x = [], []
 name_of_log("My GAmE")
+
 
 running = True
 while running:
@@ -463,7 +492,6 @@ while running:
                 play_loop_music = True
             elif hit_buton_mute and not music_off_on:
                 music_off_on = True
-                play_loop_music = True
 
     ### MATHS ###
 
@@ -492,6 +520,9 @@ while running:
     show_character_statistics()
 
     hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
+
+    count_points(True)
+    show_score()
 
     screenshot_fun(0.5)
 

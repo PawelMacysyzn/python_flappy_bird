@@ -40,17 +40,17 @@ play_loop_kill_player_sound = True
 # list containing all walls
 walls = []
 walls_image = []
-
-
 # ------------for butons-----------------------------
 # list containing all state of button mute
 buton_mute_image = []
-
-hit_buton_mute = False
+# Right mouse button
+click_button = False
+mouse_is_over_the_button = False
 # allows to play music only once in a game loop
 play_loop_music = True
 # turns music on and off
-music_off_on = False
+
+music_button_plays, music_trig, music_trig_before, p_trig_music = False, False, False, False
 # ------------for others-----------------------------
 trig_screenshot = True
 i = 0
@@ -67,6 +67,8 @@ def play_music(play):
     pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')
     if play:
         pygame.mixer.music.play(-1)
+    else:
+        pygame.mixer.music.stop()
 
 
 def name_of_log(name_str):
@@ -276,10 +278,15 @@ def drawn_character():
     pygame.draw.rect(window, color1, rect_character, 1)
 
 
-def drawn_buton(pos_mouse, music_off_on):
+def drawn_buton():
+    global mouse_is_over_the_button, music_button_plays
+    global music_trig, music_trig_before, p_trig_music
+
+    # ---------------------------------------------------------------------
+    pos_mouse = pygame.mouse.get_pos()
     buton_mute_pos = (750, 750)
 
-    if music_off_on:
+    if music_button_plays:
         buton_mute_surf = buton_mute_image[0]
         pass
     else:
@@ -288,13 +295,43 @@ def drawn_buton(pos_mouse, music_off_on):
 
     buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
     window.blit(buton_mute_surf, buton_mute_rect)
+
+    # ---------------------------------------------------------------------
+    # mouse_is_over_the_button stuff
+
     buton_mute_mask = pygame.mask.from_surface(buton_mute_surf)
+
     pos_in_mask = pos_mouse[0] - \
         buton_mute_rect.x, pos_mouse[1] - buton_mute_rect.y
+
     if buton_mute_rect.collidepoint(*pos_mouse) and buton_mute_mask.get_at(pos_in_mask):
-        return True
+        mouse_is_over_the_button = True
     else:
-        return False
+        mouse_is_over_the_button = False
+
+    # ---------------------------------------------------------------------
+    # do once
+
+    if mouse_is_over_the_button and click_button:
+        music_trig = True
+        if not music_trig_before:
+            music_trig_before = True
+            p_trig_music = True
+        pass
+    else:
+        music_trig = False
+        music_trig_before = False
+        pass
+
+    if p_trig_music:
+        # print("Clik: ")
+        if music_button_plays:
+            music_button_plays = False
+        else:
+            music_button_plays = True
+
+        play_music(music_button_plays)
+        p_trig_music = False
 
 
 def do_sprite(image, how_many_frame, which_frame, scale, alfa_color):
@@ -345,25 +382,31 @@ def player_frame_animation(will_player_be_killed, how_many_frame, speed):
             current_player_frame = 3
 
 
-def player_death_sound_event():
-    global play_loop_kill_player_sound, kill_player
+def player_death_sound_event(no_mute):
+    if no_mute:
+        global play_loop_kill_player_sound, kill_player
 
-    if play_loop_kill_player_sound and kill_player:
-        sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
+        if play_loop_kill_player_sound and kill_player:
+            sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
 
-        effect = pygame.mixer.Sound(sound_list_tag[1])
+            effect = pygame.mixer.Sound(sound_list_tag[1])
+            effect.play()
+            play_loop_kill_player_sound = False
+        # refresh the sound of death
+        if not play_loop_kill_player_sound and not kill_player:
+            play_loop_kill_player_sound = True
+    else:
+        pass
+
+
+def score_sound_event(no_mute):
+    if no_mute:
+        sound_list_tag = ['music\\audio_point.ogg']
+
+        effect = pygame.mixer.Sound(sound_list_tag[0])
         effect.play()
-        play_loop_kill_player_sound = False
-    # refresh the sound of death
-    if not play_loop_kill_player_sound and not kill_player:
-        play_loop_kill_player_sound = True
-
-
-def score_sound_event():
-    sound_list_tag = ['music\\audio_point.ogg']
-
-    effect = pygame.mixer.Sound(sound_list_tag[0])
-    effect.play()
+    else:
+        pass
 
 
 def remove_walls():
@@ -431,7 +474,7 @@ def screenshot_fun(time):
         trig_screenshot = False
 
 
-def count_points(do_fun):
+def count_points(do_fun, no_mute):
     global score, score_trig, score_trig_before, p_trig_score, walls
     if do_fun:
         if walls[0].left < pos_x and walls[0].left > 0:
@@ -446,7 +489,7 @@ def count_points(do_fun):
 
         if p_trig_score:
             score += 1
-            score_sound_event()
+            score_sound_event(no_mute)
             # print("Score: ",score)
             p_trig_score = False
 
@@ -481,12 +524,9 @@ while running:
     clock_support()
 
     ### EVENTS ###
-    if play_loop_music:
-        play_music(music_off_on)
-        play_loop_music = False
 
     # death sound effectw
-    player_death_sound_event()
+    player_death_sound_event(True)
 
     # event handling
     for event in pygame.event.get():
@@ -494,12 +534,9 @@ while running:
             running = False
         # button operation
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # press button mute
-            if hit_buton_mute and music_off_on:
-                music_off_on = False
-                play_loop_music = True
-            elif hit_buton_mute and not music_off_on:
-                music_off_on = True
+            click_button = True
+        else:
+            click_button = False
 
     ### MATHS ###
 
@@ -527,13 +564,13 @@ while running:
     drawn_character()
     show_character_statistics()
 
-    hit_buton_mute = drawn_buton(pygame.mouse.get_pos(), music_off_on)
+    drawn_buton()
 
-    count_points(True)
+    count_points(True, True)
     show_score()
 
+    # make screenshot after 0.5 sec
     screenshot_fun(0.5)
-
     # Update the display
     pygame.display.flip()
     # how many times the program has been run

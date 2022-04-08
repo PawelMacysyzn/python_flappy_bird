@@ -359,6 +359,13 @@ def player_death_sound_event():
         play_loop_kill_player_sound = True
 
 
+def score_sound_event():
+    sound_list_tag = ['music\\audio_point.ogg']
+
+    effect = pygame.mixer.Sound(sound_list_tag[0])
+    effect.play()
+
+
 def remove_walls():
     for wall in walls:
         if wall.right < 0:
@@ -439,6 +446,7 @@ def count_points(do_fun):
 
         if p_trig_score:
             score += 1
+            score_sound_event()
             # print("Score: ",score)
             p_trig_score = False
 
@@ -537,12 +545,3 @@ while running:
 
 # Quit pygame
 pygame.quit()
-'''
-    start = time.time()
-    end = time.time()
-    counter.append(end - start)
-    count = 0
-    for el in counter:
-        count += el
-    print(f"{(count/len(counter)):.9f}")
-'''

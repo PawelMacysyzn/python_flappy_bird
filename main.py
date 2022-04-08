@@ -23,6 +23,9 @@ speed_y = 0
 jump_y_bool = False
 counter_jump = 0
 p_trig_key_space = False
+pause = False
+
+pause_trig, pause_trig_before, p_trig_pause = False, False, False
 
 score, score_trig, score_trig_before, p_trig_score = 0, False, False, False
 
@@ -50,7 +53,7 @@ mouse_is_over_the_button = False
 play_loop_music = True
 # turns music on and off
 
-music_button_plays, music_trig, music_trig_before, p_trig_music = False, False, False, False
+music_button_plays, music_trig, music_trig_before, p_trig_music = False, False, False, True
 # ------------for others-----------------------------
 trig_screenshot = True
 i = 0
@@ -180,61 +183,62 @@ def rotate(var, multip_1, multip_2):
 
 
 def move_character():
-    keys = pygame.key.get_pressed()
-    top_edge = 25
-    bottom_edge = window.get_height() - 34  # 800 - 35
-    gravity_constant = 1/2
-    power_jump = 1.5
-    set_counter = 8
-    x = 2.85 * 2
-    y = 1.05 * 2
-    rotation = None
-    global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
-    global key_space_down, key_space_down_before
-    # global i
+    if not(delta_time == 0):
+        keys = pygame.key.get_pressed()
+        top_edge = 25
+        bottom_edge = window.get_height() - 34  # 800 - 35
+        gravity_constant = 1/2
+        power_jump = 1.5
+        set_counter = 8
+        x = 2.85 * 2
+        y = 1.05 * 2
+        rotation = None
+        global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
+        global key_space_down, key_space_down_before
+        # global i
 
-    # the button is performed only once per press
-    if keys[pygame.K_SPACE]:
-        key_space_down = True
-        if not key_space_down_before:
-            # i+=1
-            # print("Spacja: ",i)
-            # necessary for the proper operation of the jump
-            speed_y = 0
-            key_space_down_before = True
-            p_trig_key_space = True
-    else:
-        key_space_down = False
-        key_space_down_before = False
-
-    # counter to hold down the button
-    if p_trig_key_space:
-        counter_jump += 1
-    if counter_jump > set_counter:
-        counter_jump = 0
-        p_trig_key_space = False
-
-    # if K_SPACE is trig
-    if p_trig_key_space:
-        if speed_y > -16:
-            if pos_y > top_edge:
-                speed_y -= 1 * power_jump
-        pos_y += speed_y
-        rotation = 1
-        # rotate(1, power_jump*x, gravity_constant*y)
-
-    else:  # No kay_space
-        if speed_y < 12:
-            speed_y += 1 * gravity_constant
-        if pos_y < bottom_edge:
-            pos_y += speed_y
-            rotation = -1
+        # the button is performed only once per press
+        if keys[pygame.K_SPACE]:
+            key_space_down = True
+            if not key_space_down_before:
+                # i+=1
+                # print("Spacja: ",i)
+                # necessary for the proper operation of the jump
+                speed_y = 0
+                key_space_down_before = True
+                p_trig_key_space = True
         else:
-            rotation = 0
-            # rotate(0, power_jump*x, gravity_constant*y)
-        # rotate(-1, power_jump*x, gravity_constant*y)
+            key_space_down = False
+            key_space_down_before = False
 
-    rotate(rotation, power_jump*x, gravity_constant*y)
+        # counter to hold down the button
+        if p_trig_key_space:
+            counter_jump += 1
+        if counter_jump > set_counter:
+            counter_jump = 0
+            p_trig_key_space = False
+
+        # if K_SPACE is trig
+        if p_trig_key_space:
+            if speed_y > -16:
+                if pos_y > top_edge:
+                    speed_y -= 1 * power_jump
+            pos_y += speed_y
+            rotation = 1
+            # rotate(1, power_jump*x, gravity_constant*y)
+
+        else:  # No kay_space
+            if speed_y < 12:
+                speed_y += 1 * gravity_constant
+            if pos_y < bottom_edge:
+                pos_y += speed_y
+                rotation = -1
+            else:
+                rotation = 0
+                # rotate(0, power_jump*x, gravity_constant*y)
+            # rotate(-1, power_jump*x, gravity_constant*y)
+
+        rotate(rotation, power_jump*x, gravity_constant*y)
 
 
 def drawn_character():
@@ -311,7 +315,6 @@ def drawn_buton():
 
     # ---------------------------------------------------------------------
     # do once
-
     if mouse_is_over_the_button and click_button:
         music_trig = True
         if not music_trig_before:
@@ -361,7 +364,10 @@ def clock_support():
     # const.framerate = 60
     # dt show how many milliseconds have passed since the previous call
     # the program will never run at more than const.framerate frames per second
-    delta_time = clock.tick(const.framerate)
+    if pause:
+        delta_time = 0
+    else:
+        delta_time = clock.tick(const.framerate)
     # print(delta_time, " ms")
     # print("{:.1f} FPS".format(clock.get_fps()))
     pass
@@ -370,16 +376,17 @@ def clock_support():
 def player_frame_animation(will_player_be_killed, how_many_frame, speed):
     global program_counter, delta_time, current_player_frame
 
-    if program_counter >= delta_time/speed:
-        program_counter = 0
-        if not will_player_be_killed:
-            current_player_frame += 1
+    if not(delta_time == 0):
+        if program_counter >= delta_time/speed:
+            program_counter = 0
+            if not will_player_be_killed:
+                current_player_frame += 1
 
-            if current_player_frame >= how_many_frame - 1:
-                current_player_frame = 0
-        else:
-            # the player is dead
-            current_player_frame = 3
+                if current_player_frame >= how_many_frame - 1:
+                    current_player_frame = 0
+            else:
+                # the player is dead
+                current_player_frame = 3
 
 
 def player_death_sound_event(no_mute):
@@ -419,7 +426,8 @@ def move_walls():
     for wall in walls:
         # pos y no move
         const.y_no_mpve = 0
-        wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
+        if not(delta_time == 0):
+            wall.move_ip(-const.wall_speed / delta_time, const.y_no_mpve)
 
 
 def moving_background():
@@ -437,10 +445,10 @@ def moving_background():
     backgroud_poz_x[1] = background_surface.get_width() + backgroud_poz_x[0]
     window.blit(background_surface, (backgroud_poz_x[1], 0))
     # first surface moving
-    backgroud_poz_x[0] -= 1
-    if backgroud_poz_x[1] == 0:
-        backgroud_poz_x[0] = 0
-    pass
+    if not(delta_time == 0):
+        backgroud_poz_x[0] -= 1
+        if backgroud_poz_x[1] == 0:
+            backgroud_poz_x[0] = 0
 
 
 def background_on_off(background_yes):
@@ -492,6 +500,33 @@ def count_points(do_fun, no_mute):
             score_sound_event(no_mute)
             # print("Score: ",score)
             p_trig_score = False
+
+
+def key_pause():
+    # do once
+    # global i
+    global pause, pause_trig, pause_trig_before, p_trig_pause
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_p]:
+        pause_trig = True
+        if not pause_trig_before:
+            pause_trig_before = True
+            p_trig_pause = True
+        pass
+    else:
+        pause_trig = False
+        pause_trig_before = False
+        pass
+
+    if p_trig_pause:
+        # i += 1
+        # print("Pause: ",i)
+        if pause:
+            pause = False
+        else:
+            pause = True
+        p_trig_pause = False
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
@@ -568,6 +603,8 @@ while running:
 
     count_points(True, True)
     show_score()
+
+    key_pause()
 
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)

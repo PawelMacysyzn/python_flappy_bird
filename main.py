@@ -1,3 +1,4 @@
+from cmath import rect
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
@@ -61,7 +62,11 @@ i = 0
 key_space_down = False
 key_space_up = False
 key_space_down_before = False
-# ---------------------------------------------------
+# -----------game texts-------------------------------
+game_texts_image = []
+game_texts_center_pos = []
+
+# ----------------------------------------------------
 
 
 def play_music(play):
@@ -528,10 +533,58 @@ def key_pause():
             pause = True
         p_trig_pause = False
 
+    show_pause(pause)
+
+
+def game_texts_image_preload(game_texts_image, scale):
+    # Pause -> game_texts_image[0]
+    pause_surface = pygame.image.load(
+        'imgs\Pause.png').convert_alpha()
+    pause_surface = pygame.transform.scale(
+        pause_surface, (pause_surface.get_width()*scale, pause_surface.get_height()*scale))
+    game_texts_image.append(pause_surface)
+
+    # Game_over -> game_texts_image[1]
+    game_over_surface = pygame.image.load(
+        'imgs\Game_over.png').convert_alpha()
+    game_over_surface = pygame.transform.scale(
+        game_over_surface, (game_over_surface.get_width()*scale, game_over_surface.get_height()*scale))
+    game_texts_image.append(game_over_surface)
+
+
+def game_texts_center_pos_preload(game_texts_center_pos):
+    # window center position
+    window_center_pos = window.get_width()/2, window.get_height()/2
+
+    # Pause center position on window -> game_texts_center_pos[0]
+    pause_surface_rect = game_texts_image[0].get_rect(center=(50, -125))
+    pause_center_pos = window_center_pos[0] + \
+        pause_surface_rect.x, window_center_pos[1]+pause_surface_rect.y
+    game_texts_center_pos.append(pause_center_pos)
+
+    # Game_over center position on window -> game_texts_center_pos[1]
+    game_over_surface_rect = game_texts_image[1].get_rect(center=(25, -125))
+    wgame_over_center_pos = window_center_pos[0] + \
+        game_over_surface_rect.x, window_center_pos[1]+game_over_surface_rect.y
+    game_texts_center_pos.append(wgame_over_center_pos)
+
+
+def show_pause(show):
+    if show:
+        global window, game_texts_image, game_texts_center_pos
+        window.blit(game_texts_image[0], (game_texts_center_pos[0]))
+
+
+def show_game_over(show):
+    if show:
+        global window, game_texts_image, game_texts_center_pos
+        window.blit(game_texts_image[1], (game_texts_center_pos[1]))
+
 
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 threading.Thread(target=once_generate_walls, args=[]).start()
+
 
 image_walls_preload()
 
@@ -545,6 +598,9 @@ sprite_image_preload(
 
 # buton_mute sprite preload
 sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'WHITE')
+
+game_texts_image_preload(game_texts_image, 2/3)
+game_texts_center_pos_preload(game_texts_center_pos)
 
 
 load_once = True
@@ -605,6 +661,9 @@ while running:
     show_score()
 
     key_pause()
+
+    show_game_over(kill_player)
+
 
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)

@@ -25,13 +25,11 @@ jump_y_bool = False
 counter_jump = 0
 p_trig_key_space = False
 pause = False
-
 pause_trig, pause_trig_before, p_trig_pause = False, False, False
-
 score, score_trig, score_trig_before, p_trig_score = 0, False, False, False
-
 # global variable, current player frame in animation
 current_player_frame = 0
+
 # ------------for player----------------------------
 # collecting beginning set up position of character
 pos_x = const.x_ch
@@ -41,6 +39,7 @@ kill_player = False
 # global variable, character death sound, it allows to create the effect one at a time
 play_loop_kill_player_sound = True
 game_over_fun_active = False
+wing_move = True
 
 # ------------for walls----------------------------
 # list containing all walls
@@ -238,6 +237,7 @@ def move_character():
         y = 1.05 * 2
         global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
         global key_space_down, key_space_down_before
+        global wing_move
         # global i
 
         # the button is performed only once per press
@@ -279,10 +279,12 @@ def move_character():
                 rotation = -1
             else:
                 rotation = 0
-                # rotate(0, power_jump*x, gravity_constant*y)
-            # rotate(-1, power_jump*x, gravity_constant*y)
 
         rotate(rotation, power_jump*x, gravity_constant*y)
+        if rotation == 1:
+            wing_move = True
+        else:
+            wing_move = False
 
 
 def drawn_character():
@@ -416,18 +418,23 @@ def clock_support():
 
 
 def player_frame_animation(will_player_be_killed, how_many_frame, speed):
-    global program_counter, delta_time, current_player_frame
+    global program_counter, delta_time, current_player_frame, wing_move
+
+    print(wing_move)
 
     if not(delta_time == 0):
         if program_counter >= delta_time/speed:
             program_counter = 0
             if not will_player_be_killed:
-                current_player_frame += 1
+                if wing_move:
+                    current_player_frame += 1
+                else:
+                    current_player_frame = 0
 
                 if current_player_frame >= how_many_frame - 1:
                     current_player_frame = 0
             else:
-                # the player is dead
+                # the player is dead 3
                 current_player_frame = 3
 
 
@@ -604,8 +611,7 @@ def show_game_over():
 
 def game_over(perform):
     global kill_player, pause, game_over_fun_active, current_player_frame, music_button_plays
-    perform = False
-
+    # perform = False
     if perform:
         if kill_player:
             current_player_frame = 3

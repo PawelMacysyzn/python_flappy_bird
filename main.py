@@ -40,13 +40,13 @@ pos_y = const.y_ch
 kill_player = False
 # global variable, character death sound, it allows to create the effect one at a time
 play_loop_kill_player_sound = True
-
 game_over_fun_active = False
 
 # ------------for walls----------------------------
 # list containing all walls
 walls = []
 walls_image = []
+
 # ------------for butons-----------------------------
 # list containing all state of button mute
 buton_mute_image = []
@@ -55,6 +55,7 @@ click_button = False
 mouse_is_over_the_button = False
 # turns music on and off
 music_button_plays, music_trig, music_trig_before, p_trig_music = False, False, False, True
+do_play_music_fun_state = 0
 # ------------for others-----------------------------
 trig_screenshot = True
 i = 0
@@ -71,13 +72,50 @@ game_texts_center_pos = []
 
 
 def do_play_music(play):
+    global do_play_music_fun_state
+    # global i
     # Initialize Mixer in the program
     mixer.init()
     pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')
     if play:
         pygame.mixer.music.play(-1)
-    else:
+        # print("music.play")
+        do_play_music_fun_state = -1
+    elif not play and do_play_music_fun_state == -1:
         pygame.mixer.music.stop()
+        # i+=1
+        # print("music.stop: ", i)
+        do_play_music_fun_state = 0
+
+
+def player_death_sound_event(no_mute):
+    if no_mute:
+        global play_loop_kill_player_sound, kill_player
+
+        if play_loop_kill_player_sound and kill_player:
+            sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
+
+            effect = pygame.mixer.Sound(sound_list_tag[1])
+            effect.play()
+            play_loop_kill_player_sound = False
+        # refresh the sound of death
+        if not play_loop_kill_player_sound and not kill_player:
+            play_loop_kill_player_sound = True
+    else:
+        pass
+
+
+def player_wing_sound_event(no_mute):
+    # global i
+    if no_mute:
+        if True:
+            sound_list_tag = ['dist\\music\\audio_wing.ogg']
+            effect = pygame.mixer.Sound(sound_list_tag[0])
+            effect.play()
+            # i+=1
+            # print("wing_sound: ",i)
+    else:
+        pass
 
 
 def name_of_log(name_str):
@@ -198,7 +236,6 @@ def move_character():
         set_counter = 8
         x = 2.85 * 2
         y = 1.05 * 2
-        rotation = None
         global pos_y, speed_y, jump_y_bool, counter_jump, p_trig_key_space
         global key_space_down, key_space_down_before
         # global i
@@ -213,6 +250,7 @@ def move_character():
                 speed_y = 0
                 key_space_down_before = True
                 p_trig_key_space = True
+                player_wing_sound_event(True)
         else:
             key_space_down = False
             key_space_down_before = False
@@ -393,23 +431,6 @@ def player_frame_animation(will_player_be_killed, how_many_frame, speed):
                 current_player_frame = 3
 
 
-def player_death_sound_event(no_mute):
-    if no_mute:
-        global play_loop_kill_player_sound, kill_player
-
-        if play_loop_kill_player_sound and kill_player:
-            sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
-
-            effect = pygame.mixer.Sound(sound_list_tag[1])
-            effect.play()
-            play_loop_kill_player_sound = False
-        # refresh the sound of death
-        if not play_loop_kill_player_sound and not kill_player:
-            play_loop_kill_player_sound = True
-    else:
-        pass
-
-
 def score_sound_event(no_mute):
     if no_mute:
         sound_list_tag = ['music\\audio_point.ogg']
@@ -583,18 +604,16 @@ def show_game_over():
 
 def game_over(perform):
     global kill_player, pause, game_over_fun_active, current_player_frame, music_button_plays
-    game_over_fun_active = perform
-    # perform = False
+    perform = False
 
     if perform:
         if kill_player:
             current_player_frame = 3
             show_game_over()
             music_button_plays = False
-            # this is doing in a loop all the time !!! to improve ...
             do_play_music(music_button_plays)
             pause = True
-
+            game_over_fun_active = perform
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
@@ -613,7 +632,7 @@ sprite_image_preload(
 
 
 # buton_mute sprite preload
-sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'WHITE')
+sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'BLACK')
 
 game_texts_image_preload(game_texts_image, 2/3)
 game_texts_center_pos_preload(game_texts_center_pos)
@@ -665,8 +684,6 @@ while running:
     threading.Thread(target=draws_obstacles, args=[
                      walls_image[0], walls_image[1]]).start()
 
-    # Draw character
-    # move_character()
     move_character()
     drawn_character()
     show_character_statistics()
@@ -677,7 +694,6 @@ while running:
     show_score()
 
     key_pause()
-    # game_over(True)
     threading.Thread(target=game_over, args=[True]).start()
 
     # make screenshot after 0.5 sec

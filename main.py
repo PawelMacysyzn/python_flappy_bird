@@ -30,15 +30,18 @@ pause_trig, pause_trig_before, p_trig_pause = False, False, False
 
 score, score_trig, score_trig_before, p_trig_score = 0, False, False, False
 
+# global variable, current player frame in animation
+current_player_frame = 0
+# ------------for player----------------------------
 # collecting beginning set up position of character
 pos_x = const.x_ch
 pos_y = const.y_ch
-# global variable, current player frame in animation
-current_player_frame = 0
 # global variable, character death animation
 kill_player = False
 # global variable, character death sound, it allows to create the effect one at a time
 play_loop_kill_player_sound = True
+
+game_over_fun_active = False
 
 # ------------for walls----------------------------
 # list containing all walls
@@ -50,10 +53,7 @@ buton_mute_image = []
 # Right mouse button
 click_button = False
 mouse_is_over_the_button = False
-# allows to play music only once in a game loop
-play_loop_music = True
 # turns music on and off
-
 music_button_plays, music_trig, music_trig_before, p_trig_music = False, False, False, True
 # ------------for others-----------------------------
 trig_screenshot = True
@@ -62,6 +62,7 @@ i = 0
 key_space_down = False
 key_space_up = False
 key_space_down_before = False
+
 # -----------game texts-------------------------------
 game_texts_image = []
 game_texts_center_pos = []
@@ -69,7 +70,7 @@ game_texts_center_pos = []
 # ----------------------------------------------------
 
 
-def play_music(play):
+def do_play_music(play):
     # Initialize Mixer in the program
     mixer.init()
     pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')
@@ -297,10 +298,8 @@ def drawn_buton():
 
     if music_button_plays:
         buton_mute_surf = buton_mute_image[0]
-        pass
     else:
         buton_mute_surf = buton_mute_image[1]
-        pass
 
     buton_mute_rect = buton_mute_surf.get_rect(center=(buton_mute_pos))
     window.blit(buton_mute_surf, buton_mute_rect)
@@ -338,7 +337,7 @@ def drawn_buton():
         else:
             music_button_plays = True
 
-        play_music(music_button_plays)
+        do_play_music(music_button_plays)
         p_trig_music = False
 
 
@@ -365,7 +364,7 @@ def do_sprite(image, how_many_frame, which_frame, scale, alfa_color):
 
 
 def clock_support():
-    global delta_time
+    global delta_time, pause
     # const.framerate = 60
     # dt show how many milliseconds have passed since the previous call
     # the program will never run at more than const.framerate frames per second
@@ -510,7 +509,8 @@ def count_points(do_fun, no_mute):
 def key_pause():
     # do once
     # global i
-    global pause, pause_trig, pause_trig_before, p_trig_pause
+
+    global pause, pause_trig, pause_trig_before, p_trig_pause, kill_player
     keys = pygame.key.get_pressed()
 
     if keys[pygame.K_p]:
@@ -533,7 +533,8 @@ def key_pause():
             pause = True
         p_trig_pause = False
 
-    show_pause(pause)
+    if not game_over_fun_active:
+        show_pause(pause)
 
 
 def game_texts_image_preload(game_texts_image, scale):
@@ -575,10 +576,25 @@ def show_pause(show):
         window.blit(game_texts_image[0], (game_texts_center_pos[0]))
 
 
-def show_game_over(show):
-    if show:
-        global window, game_texts_image, game_texts_center_pos
-        window.blit(game_texts_image[1], (game_texts_center_pos[1]))
+def show_game_over():
+    global window, game_texts_image, game_texts_center_pos
+    window.blit(game_texts_image[1], (game_texts_center_pos[1]))
+
+
+def game_over(perform):
+    global kill_player, pause, game_over_fun_active, current_player_frame, music_button_plays
+    game_over_fun_active = perform
+    # perform = False
+
+    if perform:
+        if kill_player:
+            current_player_frame = 3
+            show_game_over()
+            music_button_plays = False
+            # this is doing in a loop all the time !!! to improve ...
+            do_play_music(music_button_plays)
+            pause = True
+
 
 
 ###---------------------------------GAMING-LOOP---------------------------------###
@@ -661,9 +677,8 @@ while running:
     show_score()
 
     key_pause()
-
-    show_game_over(kill_player)
-
+    # game_over(True)
+    threading.Thread(target=game_over, args=[True]).start()
 
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)

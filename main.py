@@ -1,4 +1,6 @@
 from cmath import rect
+from turtle import color
+from unicodedata import digit
 import pygame  # game library
 import const  # declaration of constants
 from random import randint
@@ -66,6 +68,9 @@ key_space_down_before = False
 # -----------game texts-------------------------------
 game_texts_image = []
 game_texts_center_pos = []
+# includes a graphic of numbers
+score_images = []
+game_score_center_pos = []
 
 # ----------------------------------------------------
 
@@ -148,66 +153,109 @@ def draws_obstacles(obstacle_image_down, obstacle_image_up):
             window.blit(obstacle_image_down, (wall[0], wall[1]))
 
 
-def show_character_statistics():
-    font = pygame.font.SysFont('Comic Gecko', 30)
-    position_x = 180
-    position_y = 10
-    next_width = 100
-    next_width_1 = 25
-    label_1 = font.render("X:", 1, (0, 0, 0))
-    label_2 = font.render(str(pos_x), 1, (0, 0, 0))
-    label_3 = font.render("Y:", 1, (0, 0, 0))
-    label_4 = font.render(str("{:.1f}".format(pos_y)), 1, (0, 0, 0))
-    label_5 = font.render("R:", 1, (0, 0, 0))
-    label_6 = font.render(str("{:.1f}".format(const.rotate)), 1, (0, 0, 0))
-    label_7 = font.render("FPS:", 1, (0, 0, 0))
-    label_8 = font.render(str("{:.1f}".format(clock.get_fps())), 1, (0, 0, 0))
-    label_9 = font.render("speed_y:", 1, (0, 0, 0))
-    label_10 = font.render(str("{:.1f}".format(speed_y)), 1, (0, 0, 0))
-    label_11 = font.render("counter_jump:", 1, (0, 0, 0))
-    label_12 = font.render(str(counter_jump), 1, (0, 0, 0))
+def show_character_statistics(what):
+    if what.upper() == 'ALL':
+        what = 1
+    elif what.upper() == 'FPS':
+        what = 2
+    elif what.upper() == 'NONE':
+        what = 0
 
-    # next stat X
-    window.blit(label_1, (const.windows_size[0] - position_x, position_y))
-    window.blit(
-        label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
-    # next stat Y
-    position_x -= next_width
-    window.blit(label_3, (const.windows_size[0] - position_x, position_y))
-    window.blit(
-        label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
-    # next line R
-    position_x += next_width
-    window.blit(label_5, (const.windows_size[0] - position_x, position_y + 50))
-    window.blit(
-        label_6, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
-    # next stat V
-    position_x -= next_width
-    window.blit(
-        label_7, (const.windows_size[0] - position_x - 25, position_y + 50))
-    window.blit(
-        label_8, (const.windows_size[0] - position_x + next_width_1, position_y + 50))
-    # next stat speed_y
-    position_x += next_width
-    window.blit(
-        label_9, (const.windows_size[0] - position_x, position_y + 100))
-    window.blit(
-        label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y + 100))
-    # next stat counter_jump
-    position_x += next_width
-    window.blit(
-        label_11, (const.windows_size[0] - position_x + 100, position_y + 150))
-    window.blit(
-        label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y + 150))
+    if not what == 0:
+        font = pygame.font.SysFont('Comic Gecko', 30)
+        position_x = 180
+        position_y = 10
+        next_width = 100
+        next_width_1 = 25
+        color_font = (255, 255, 255)
+
+        label_7 = font.render("FPS:", 1, color_font)
+        label_8 = font.render(
+            str("{:.1f}".format(clock.get_fps())), 1, color_font)
+
+        position_x -= next_width
+        window.blit(
+            label_7, (const.windows_size[0] - position_x - 15, position_y))
+        window.blit(
+            label_8, (const.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
+
+        if not what == 2:
+            label_1 = font.render("X:", 1, color_font)
+            label_2 = font.render(str(pos_x), 1, color_font)
+            label_3 = font.render("Y:", 1, color_font)
+            label_4 = font.render(str("{:.1f}".format(pos_y)), 1, color_font)
+            label_5 = font.render("R:", 1, color_font)
+            label_6 = font.render(
+                str("{:.1f}".format(const.rotate)), 1, color_font)
+            label_9 = font.render("speed_y:", 1, color_font)
+            label_10 = font.render(
+                str("{:.1f}".format(speed_y)), 1, color_font)
+            label_11 = font.render("counter_jump:", 1, color_font)
+            label_12 = font.render(str(counter_jump), 1, color_font)
+
+            # NEXT LINE
+            position_y += 50
+            position_x += next_width
+            # next stat X
+            window.blit(
+                label_1, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
+            # next stat Y
+            position_x -= next_width
+            window.blit(
+                label_3, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next line R
+            position_x += next_width
+            window.blit(
+                label_5, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next stat V
+            # next stat speed_y
+            window.blit(
+                label_9, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next stat counter_jump
+            position_x += next_width
+            window.blit(
+                label_11, (const.windows_size[0] - position_x + 100, position_y))
+            window.blit(
+                label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
 
 
 def show_score():
-    size_font = 100
-    font = pygame.font.SysFont('comicsansms', size_font)
+    global window, score, game_score_center_pos
 
-    label_1 = font.render(str(score), 1, (0, 0, 0))
-
-    window.blit(label_1, (window.get_width()/2, window.get_height()/25))
+    if score < 10:
+        window.blit(score_images[score], (game_score_center_pos[0]))
+    elif score >= 10 and score < 100:
+        # [x][]
+        window.blit(score_images[score // 10], (game_score_center_pos[2]))
+        # [][x]
+        window.blit(score_images[score % 10], (game_score_center_pos[1]))
+    elif score >= 100 and score < 1000:
+        # [x][][]
+        window.blit(score_images[score // 100], (game_score_center_pos[5]))
+        # [][x][]
+        window.blit(score_images[score // 10 % 10], (game_score_center_pos[4]))
+        # [][][x]
+        window.blit(score_images[score % 10], (game_score_center_pos[3]))
 
 
 def rotate(var, multip_1, multip_2):
@@ -419,9 +467,6 @@ def clock_support():
 
 def player_frame_animation(will_player_be_killed, how_many_frame, speed):
     global program_counter, delta_time, current_player_frame, wing_move
-
-    print(wing_move)
-
     if not(delta_time == 0):
         if program_counter >= delta_time/speed:
             program_counter = 0
@@ -534,14 +579,14 @@ def count_points(do_fun, no_mute):
             p_trig_score = False
 
 
-def key_pause():
+def key_pause(game_over):
     # do once
     # global i
 
     global pause, pause_trig, pause_trig_before, p_trig_pause, kill_player
     keys = pygame.key.get_pressed()
 
-    if keys[pygame.K_p]:
+    if keys[pygame.K_p] and not game_over:
         pause_trig = True
         if not pause_trig_before:
             pause_trig_before = True
@@ -581,6 +626,19 @@ def game_texts_image_preload(game_texts_image, scale):
     game_texts_image.append(game_over_surface)
 
 
+def game_score_image_preload(list_images, scale):
+
+    digit_images = ['imgs\digits\\0.png', 'imgs\digits\\1.png', 'imgs\digits\\2.png', 'imgs\digits\\3.png', 'imgs\digits\\4.png',
+                    'imgs\digits\\5.png', 'imgs\digits\\6.png', 'imgs\digits\\7.png', 'imgs\digits\\8.png', 'imgs\digits\\9.png']
+
+    for image in digit_images:
+        list_images.append(pygame.image.load(image).convert_alpha())
+
+    for idx, scaled_image in enumerate(list_images):
+        list_images[idx] = pygame.transform.scale(
+            scaled_image, (scaled_image.get_width()*scale, scaled_image.get_height()*scale))
+
+
 def game_texts_center_pos_preload(game_texts_center_pos):
     # window center position
     window_center_pos = window.get_width()/2, window.get_height()/2
@@ -596,6 +654,55 @@ def game_texts_center_pos_preload(game_texts_center_pos):
     wgame_over_center_pos = window_center_pos[0] + \
         game_over_surface_rect.x, window_center_pos[1]+game_over_surface_rect.y
     game_texts_center_pos.append(wgame_over_center_pos)
+
+
+def game_score_center_pos_preload(game_score_center_pos):
+    global window
+    y = -325
+    # window center position
+    window_center_pos = window.get_width()/2, window.get_height()/2
+
+    # Pause center position on window -> game_texts_center_pos[0]
+    digit_0_pause_surface_rect = score_images[0].get_rect(center=(0, y))
+    # game_score_center_pos[0]
+    digit0_center_pos = window_center_pos[0] + \
+        digit_0_pause_surface_rect.x, window_center_pos[1] + \
+        digit_0_pause_surface_rect.y
+    game_score_center_pos.append(digit0_center_pos)
+
+    # Pause center position on window -> game_texts_center_pos[00]
+    digit_0_pause_surface_rect = score_images[0].get_rect(center=(50, y))
+    digit_1_pause_surface_rect = score_images[0].get_rect(center=(-50, y))
+    # game_score_center_pos[1]
+    digit0_center_pos = window_center_pos[0] + \
+        digit_0_pause_surface_rect.x, window_center_pos[1] + \
+        digit_0_pause_surface_rect.y
+    game_score_center_pos.append(digit0_center_pos)
+    # game_score_center_pos[2]
+    digit00_center_pos = window_center_pos[0] + \
+        digit_1_pause_surface_rect.x, window_center_pos[1] + \
+        digit_1_pause_surface_rect.y
+    game_score_center_pos.append(digit00_center_pos)
+
+    # Pause center position on window -> game_texts_center_pos[000]
+    digit_0_pause_surface_rect = score_images[0].get_rect(center=(100, y))
+    digit_1_pause_surface_rect = score_images[0].get_rect(center=(0, y))
+    digit_2_pause_surface_rect = score_images[0].get_rect(center=(-100, y))
+    # game_score_center_pos[3]
+    digit0_center_pos = window_center_pos[0] + \
+        digit_0_pause_surface_rect.x, window_center_pos[1] + \
+        digit_0_pause_surface_rect.y
+    game_score_center_pos.append(digit0_center_pos)
+    # game_score_center_pos[4]
+    digit00_center_pos = window_center_pos[0] + \
+        digit_1_pause_surface_rect.x, window_center_pos[1] + \
+        digit_1_pause_surface_rect.y
+    game_score_center_pos.append(digit00_center_pos)
+    # game_score_center_pos[5]
+    digit000_center_pos = window_center_pos[0] + \
+        digit_2_pause_surface_rect.x, window_center_pos[1] + \
+        digit_2_pause_surface_rect.y
+    game_score_center_pos.append(digit000_center_pos)
 
 
 def show_pause(show):
@@ -625,8 +732,6 @@ def game_over(perform):
 ###---------------------------------GAMING-LOOP---------------------------------###
 # Preparation functions
 threading.Thread(target=once_generate_walls, args=[]).start()
-
-
 image_walls_preload()
 
 background_surface = pygame.image.load(
@@ -643,6 +748,8 @@ sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'BLACK')
 game_texts_image_preload(game_texts_image, 2/3)
 game_texts_center_pos_preload(game_texts_center_pos)
 
+game_score_image_preload(score_images, 1)
+game_score_center_pos_preload(game_score_center_pos)
 
 load_once = True
 counter, backgroud_poz_x = [], []
@@ -692,16 +799,15 @@ while running:
 
     move_character()
     drawn_character()
-    show_character_statistics()
+    show_character_statistics('FPS')
 
     drawn_buton()
 
     count_points(True, True)
     show_score()
 
-    key_pause()
+    key_pause(game_over_fun_active)
     threading.Thread(target=game_over, args=[True]).start()
-
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)
     # Update the display

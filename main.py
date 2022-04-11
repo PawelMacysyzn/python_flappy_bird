@@ -113,7 +113,7 @@ def player_wing_sound_event(no_mute):
     # global i
     if no_mute:
         if True:
-            sound_list_tag = ['dist\\music\\audio_wing.ogg']
+            sound_list_tag = ['music\\audio_wing.ogg']
             effect = pygame.mixer.Sound(sound_list_tag[0])
             effect.play()
             # i+=1

@@ -1,5 +1,4 @@
 from cmath import rect
-from turtle import color
 from unicodedata import digit
 import pygame  # game library
 import const  # declaration of constants
@@ -29,6 +28,7 @@ p_trig_key_space = False
 pause = False
 pause_trig, pause_trig_before, p_trig_pause = False, False, False
 score, score_trig, score_trig_before, p_trig_score = 0, False, False, False
+
 # global variable, current player frame in animation
 current_player_frame = 0
 
@@ -65,12 +65,19 @@ key_space_down = False
 key_space_up = False
 key_space_down_before = False
 
+
+resume_limt = True
+limit_trig, limit_trig_before, p_trig_limit = False, False, False
+
 # -----------game texts-------------------------------
 game_texts_image = []
 game_texts_center_pos = []
 # includes a graphic of numbers
 score_images = []
 game_score_center_pos = []
+
+resume_done, resume_trig, resume_trig_before, p_trig_resume = False, False, False, False
+counter_resume = 0
 
 # ----------------------------------------------------
 
@@ -562,21 +569,22 @@ def screenshot_fun(time):
 def count_points(do_fun, no_mute):
     global score, score_trig, score_trig_before, p_trig_score, walls
     if do_fun:
-        if walls[0].left < pos_x and walls[0].left > 0:
-            # print(walls[0].left)
-            score_trig = True
-            if not score_trig_before:
-                score_trig_before = True
-                p_trig_score = True
-        else:
-            score_trig = False
-            score_trig_before = False
+        if len(walls):
+            if walls[0].left < pos_x and walls[0].left > 0:
+                # print(walls[0].left)
+                score_trig = True
+                if not score_trig_before:
+                    score_trig_before = True
+                    p_trig_score = True
+            else:
+                score_trig = False
+                score_trig_before = False
 
-        if p_trig_score:
-            score += 1
-            score_sound_event(no_mute)
-            # print("Score: ",score)
-            p_trig_score = False
+            if p_trig_score:
+                score += 1
+                score_sound_event(no_mute)
+                # print("Score: ",score)
+                p_trig_score = False
 
 
 def key_pause(game_over):
@@ -610,33 +618,50 @@ def key_pause(game_over):
         show_pause(pause)
 
 
+def key_resume():
+    # do once
+    # global i
+
+    global resume_trig, resume_trig_before, p_trig_resume, kill_player
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_r] and kill_player:
+        resume_trig = True
+        if not resume_trig_before:
+            resume_trig_before = True
+            p_trig_resume = True
+        pass
+    else:
+        resume_trig = False
+        resume_trig_before = False
+        pass
+
+    if p_trig_resume:
+        # i += 1
+        # print("Resume: ",i)
+        if (kill_player):
+            resets_all_statistics()
+
+
 def game_texts_image_preload(game_texts_image, scale):
     # Pause -> game_texts_image[0]
-    pause_surface = pygame.image.load(
-        'imgs\Pause.png').convert_alpha()
+    pause_surface = pygame.image.load('imgs\Pause.png').convert_alpha()
     pause_surface = pygame.transform.scale(
         pause_surface, (pause_surface.get_width()*scale, pause_surface.get_height()*scale))
     game_texts_image.append(pause_surface)
 
     # Game_over -> game_texts_image[1]
-    game_over_surface = pygame.image.load(
-        'imgs\Game_over.png').convert_alpha()
+    game_over_surface = pygame.image.load('imgs\Game_over.png').convert_alpha()
     game_over_surface = pygame.transform.scale(
         game_over_surface, (game_over_surface.get_width()*scale, game_over_surface.get_height()*scale))
     game_texts_image.append(game_over_surface)
 
-
-def game_score_image_preload(list_images, scale):
-
-    digit_images = ['imgs\digits\\0.png', 'imgs\digits\\1.png', 'imgs\digits\\2.png', 'imgs\digits\\3.png', 'imgs\digits\\4.png',
-                    'imgs\digits\\5.png', 'imgs\digits\\6.png', 'imgs\digits\\7.png', 'imgs\digits\\8.png', 'imgs\digits\\9.png']
-
-    for image in digit_images:
-        list_images.append(pygame.image.load(image).convert_alpha())
-
-    for idx, scaled_image in enumerate(list_images):
-        list_images[idx] = pygame.transform.scale(
-            scaled_image, (scaled_image.get_width()*scale, scaled_image.get_height()*scale))
+    # Resume -> game_texts_image[2]
+    scale *= 1.1
+    resume_surface = pygame.image.load('imgs\\resume.png').convert_alpha()
+    resume_surface = pygame.transform.scale(
+        resume_surface, (resume_surface.get_width()*scale, resume_surface.get_height()*scale))
+    game_texts_image.append(resume_surface)
 
 
 def game_texts_center_pos_preload(game_texts_center_pos):
@@ -650,10 +675,29 @@ def game_texts_center_pos_preload(game_texts_center_pos):
     game_texts_center_pos.append(pause_center_pos)
 
     # Game_over center position on window -> game_texts_center_pos[1]
-    game_over_surface_rect = game_texts_image[1].get_rect(center=(25, -125))
-    wgame_over_center_pos = window_center_pos[0] + \
+    game_over_surface_rect = game_texts_image[1].get_rect(center=(25, -200))
+    game_over_center_pos = window_center_pos[0] + \
         game_over_surface_rect.x, window_center_pos[1]+game_over_surface_rect.y
-    game_texts_center_pos.append(wgame_over_center_pos)
+    game_texts_center_pos.append(game_over_center_pos)
+
+    # Resume center position on window -> game_texts_center_pos[2]
+    resume_surface_rect = game_texts_image[2].get_rect(center=(25, 45))
+    resume_center_pos = window_center_pos[0] + \
+        resume_surface_rect.x, window_center_pos[1]+resume_surface_rect.y
+    game_texts_center_pos.append(resume_center_pos)
+
+
+def game_score_image_preload(list_images, scale):
+
+    digit_images = ['imgs\digits\\0.png', 'imgs\digits\\1.png', 'imgs\digits\\2.png', 'imgs\digits\\3.png', 'imgs\digits\\4.png',
+                    'imgs\digits\\5.png', 'imgs\digits\\6.png', 'imgs\digits\\7.png', 'imgs\digits\\8.png', 'imgs\digits\\9.png']
+
+    for image in digit_images:
+        list_images.append(pygame.image.load(image).convert_alpha())
+
+    for idx, scaled_image in enumerate(list_images):
+        list_images[idx] = pygame.transform.scale(
+            scaled_image, (scaled_image.get_width()*scale, scaled_image.get_height()*scale))
 
 
 def game_score_center_pos_preload(game_score_center_pos):
@@ -711,18 +755,38 @@ def show_pause(show):
         window.blit(game_texts_image[0], (game_texts_center_pos[0]))
 
 
-def show_game_over():
+def show_game_over_and_resume():
     global window, game_texts_image, game_texts_center_pos
     window.blit(game_texts_image[1], (game_texts_center_pos[1]))
+    window.blit(game_texts_image[2], (game_texts_center_pos[2]))
+
+
+def resets_all_statistics():
+    global score, walls, pause, game_over_fun_active, kill_player, current_player_frame, resume_done, p_trig_resume, music_button_plays
+
+    score = 0
+    walls.clear()
+    current_player_frame = 0
+    if kill_player or game_over_fun_active:
+        pause = False
+        kill_player = False
+        game_over_fun_active = False
+
+    p_trig_resume = False
+    resume_done = True
+
+    once_generate_walls()
+    music_button_plays = True
+    do_play_music(music_button_plays)
 
 
 def game_over(perform):
-    global kill_player, pause, game_over_fun_active, current_player_frame, music_button_plays
+    global kill_player, pause, game_over_fun_active, current_player_frame, music_button_plays, resume_done
     # perform = False
     if perform:
         if kill_player:
             current_player_frame = 3
-            show_game_over()
+            show_game_over_and_resume()
             music_button_plays = False
             do_play_music(music_button_plays)
             pause = True
@@ -740,7 +804,6 @@ background_surface = pygame.image.load(
 # character sprite preload
 sprite_image_preload(
     character_frames, 'imgs\\flappy_sprite.png', 4, const.scale, 'RED')
-
 
 # buton_mute sprite preload
 sprite_image_preload(buton_mute_image, 'imgs\\mute_sprite.png', 2, 1, 'BLACK')
@@ -807,7 +870,10 @@ while running:
     show_score()
 
     key_pause(game_over_fun_active)
-    threading.Thread(target=game_over, args=[True]).start()
+    game_over(True)
+    # threading.Thread(target=game_over, args=[True]).start()
+    key_resume()
+
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)
     # Update the display

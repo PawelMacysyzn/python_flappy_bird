@@ -87,8 +87,10 @@ def do_play_music(play):
     # global i
     # Initialize Mixer in the program
     mixer.init()
-    pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')
+    # background music
+    pygame.mixer.music.load('music\\bensound-summer_ogg_music.ogg')  # bac
     if play:
+        # The -1 argument makes the background music forever loop when it reaches the end of the sound file
         pygame.mixer.music.play(-1)
         # print("music.play")
         do_play_music_fun_state = -1
@@ -97,6 +99,7 @@ def do_play_music(play):
         # i+=1
         # print("music.stop: ", i)
         do_play_music_fun_state = 0
+
 
 
 def player_death_sound_event(no_mute):
@@ -381,6 +384,26 @@ def drawn_character():
 
     # Box for collision
     pygame.draw.rect(window, color1, rect_character, 1)
+
+
+class Buton():
+    # Creates a button
+    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+        self.sprite_location = sprite_location
+        self.how_many_images = how_many_images
+        self.alfa_color = alfa_color
+        self.scaling = scaling
+
+    def preload_images_from_sprite():
+        images_from_sprite = []
+
+
+    def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
+    for frame in range(how_many_frame):
+        sprite_list.append(do_sprite(image,
+                                     how_many_frame, frame, scale, alfa_color).convert_alpha())
+
+
 
 
 def drawn_buton():

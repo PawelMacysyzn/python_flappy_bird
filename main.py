@@ -394,14 +394,13 @@ class Buton():
         self.alfa_color = alfa_color
         self.scaling = scaling
 
-    def preload_images_from_sprite():
+    def preload_images_from_sprite(self):
         images_from_sprite = []
 
-
-    def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
-    for frame in range(how_many_frame):
-        sprite_list.append(do_sprite(image,
-                                     how_many_frame, frame, scale, alfa_color).convert_alpha())
+    # def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
+    # for frame in range(how_many_frame):
+    #     sprite_list.append(do_sprite(image,
+    #                                  how_many_frame, frame, scale, alfa_color).convert_alpha())
 
 
 

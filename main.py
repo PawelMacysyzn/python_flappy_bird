@@ -394,13 +394,52 @@ class Buton():
         self.alfa_color = alfa_color
         self.scaling = scaling
 
-    def preload_images_from_sprite(self):
-        images_from_sprite = []
+        self.images_from_sprite = []
 
-    # def sprite_image_preload(sprite_list, image, how_many_frame, scale, alfa_color):
-    # for frame in range(how_many_frame):
-    #     sprite_list.append(do_sprite(image,
-    #                                  how_many_frame, frame, scale, alfa_color).convert_alpha())
+        # self.preload_images_from_sprite()
+
+    def preload_images_from_sprite(self):
+
+        for which_frame in range(self.how_many_images):
+            self.images_from_sprite.append(self.do_sprite(self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
+
+    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
+        spride_sheet_image = pygame.image.load(image).convert_alpha()
+
+        if alfa_color.upper() == 'WHITE':
+            alfa_color = (255, 255, 255)
+        elif alfa_color.upper() == 'BLACK':
+            alfa_color = (0, 0, 0)
+        elif alfa_color.upper() == 'RED':
+            alfa_color = (255, 0, 0)
+
+        width = spride_sheet_image.get_width()/how_many_images
+        height = spride_sheet_image.get_height()
+
+        image = pygame.Surface((width, height)).convert_alpha()
+        image.blit(spride_sheet_image, (0, 0),
+                ((which_frame*width), 0, width, height))
+        image = pygame.transform.scale(image, (width*scaling, height*scaling))
+        image.set_colorkey(alfa_color)
+
+        return image
+
+    def drawn_buton(self):
+        # global mouse_is_over_the_button, music_button_plays
+        # global music_trig, music_trig_before, p_trig_music
+
+        # ---------------------------------------------------------------------
+        # pos_mouse = pygame.mouse.get_pos()
+        self.buton_mute_pos = (100, 750)
+
+        if music_button_plays:
+            buton_mute_surf = buton_mute_image[0]
+        else:
+            buton_mute_surf = buton_mute_image[1]
+
+        buton_mute_rect = buton_mute_surf.get_rect(center=(self.buton_mute_pos))
+        window.blit(buton_mute_surf, buton_mute_rect)
+
 
 
 
@@ -840,6 +879,12 @@ load_once = True
 counter, backgroud_poz_x = [], []
 name_of_log("My GAmE")
 
+# -------------- Class variable ---------------------------
+
+second_buton_mute = Buton('imgs\\mute_sprite.png', 2, 'BLACK', 1)
+second_buton_mute.preload_images_from_sprite()
+
+# ---------------------------------------------------------
 
 running = True
 while running:
@@ -895,6 +940,17 @@ while running:
     game_over(True)
     # threading.Thread(target=game_over, args=[True]).start()
     key_resume()
+
+    # -------------- Class variable ---------------------------
+
+    # second_buton_mute.drawn_buton()
+
+    # ---------------------------------------------------------
+
+
+
+
+
 
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)

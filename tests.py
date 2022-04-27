@@ -17,21 +17,21 @@ pause = False
 class Buton():
     # Creates a button
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
-        self.sprite_location = sprite_location
-        self.how_many_images = how_many_images
-        self.alfa_color = alfa_color
-        self.scaling = scaling
+        sprite_location = sprite_location
+        how_many_images = how_many_images
+        alfa_color = alfa_color
+        scaling = scaling
 
-        self.images_from_sprite = []
+        images_from_sprite = []
 
-        # self.preload_images_from_sprite()
+        # preload_images_from_sprite()
         pass
 
     def preload_images_from_sprite(self):
 
-        for which_frame in range(self.how_many_images):
-            self.images_from_sprite.append(self.do_sprite(
-                self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
+        for which_frame in range(how_many_images):
+            images_from_sprite.append(do_sprite(
+                sprite_location, how_many_images, which_frame, alfa_color, scaling))
 
     def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
         spride_sheet_image = pygame.image.load(image).convert_alpha()
@@ -60,7 +60,7 @@ class Buton():
 
         # ---------------------------------------------------------------------
         # pos_mouse = pygame.mouse.get_pos()
-        self.buton_mute_pos = (100, 750)
+        buton_mute_pos = (100, 750)
 
         if music_button_plays:
             buton_mute_surf = buton_mute_image[0]
@@ -68,16 +68,16 @@ class Buton():
             buton_mute_surf = buton_mute_image[1]
 
         buton_mute_rect = buton_mute_surf.get_rect(
-            center=(self.buton_mute_pos))
+            center=(buton_mute_pos))
         window.blit(buton_mute_surf, buton_mute_rect)
 
 
 class Background():
     def __init__(self) -> None:
         # backgroud position x, position y is const == 0
-        self.self.backgroud_pos_x = []
+        self.backgroud_pos_x = []
         # backgroud preload
-        self.self.background_surface = pygame.image.load(
+        self.background_surface = pygame.image.load(
             'imgs\\background_full_width.png').convert_alpha()
         # Green color
         self.color_background = (124, 252, 0)
@@ -87,24 +87,29 @@ class Background():
         # end
         pass
 
-    def background_on_off(self, background_yes):
+    def background_on_off(self, background_yes, speed):
+        self.background_yes = background_yes
+        self.speed = speed
+
         if background_yes:
             # threading.Thread(target = moving_background, args=[]).start()
-            self.moving_background()
+            self.moving_background(self.speed)
         else:
             window.fill(self.color_background)
 
-    def moving_background(self):
-        window.blit(self.self.background_surface, (self.backgroud_pos_x[0], 0))
+    def moving_background(self, speed):
+        global delta_time
+        if delta_time == 0:
+            speed = 0
+        window.blit(self.background_surface, (self.backgroud_pos_x[0], 0))
         # window.width == 800 - backgroud_poz_x[0]
         self.backgroud_pos_x[1] = self.background_surface.get_width() + \
             self.backgroud_pos_x[0]
         window.blit(self.background_surface, (self.backgroud_pos_x[1], 0))
         # first surface moving
-        if not(delta_time == 0):
-            self.backgroud_pos_x[0] -= 1
-            if self.backgroud_pos_x[1] == 0:
-                self.backgroud_pos_x[0] = 0
+        self.backgroud_pos_x[0] -= 1 * speed
+        if self.backgroud_pos_x[1] == 0:
+            self.backgroud_pos_x[0] = 0
 
 
 def clock_support():
@@ -121,11 +126,8 @@ def clock_support():
     pass
 
 
-
-# Preload 
-
-
-
+# Preload background layer 0
+background_layer_0 = Background()
 
 
 running = True
@@ -164,8 +166,6 @@ while running:
 
     # Fill the background
 
-
-
     # Draw walls
     # threading.Thread(target=draws_obstacles, args=[
     #                  walls_image[0], walls_image[1]]).start()
@@ -186,7 +186,8 @@ while running:
 
     # -------------- Class variable ---------------------------
 
-    # second_buton_mute.drawn_buton()
+    background_layer_0.background_on_off(True, 1)
+    pause = False
 
     # ---------------------------------------------------------
 

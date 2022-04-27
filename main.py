@@ -101,7 +101,6 @@ def do_play_music(play):
         do_play_music_fun_state = 0
 
 
-
 def player_death_sound_event(no_mute):
     if no_mute:
         global play_loop_kill_player_sound, kill_player
@@ -401,7 +400,8 @@ class Buton():
     def preload_images_from_sprite(self):
 
         for which_frame in range(self.how_many_images):
-            self.images_from_sprite.append(self.do_sprite(self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
+            self.images_from_sprite.append(self.do_sprite(
+                self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
 
     def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
         spride_sheet_image = pygame.image.load(image).convert_alpha()
@@ -418,7 +418,7 @@ class Buton():
 
         image = pygame.Surface((width, height)).convert_alpha()
         image.blit(spride_sheet_image, (0, 0),
-                ((which_frame*width), 0, width, height))
+                   ((which_frame*width), 0, width, height))
         image = pygame.transform.scale(image, (width*scaling, height*scaling))
         image.set_colorkey(alfa_color)
 
@@ -437,11 +437,9 @@ class Buton():
         else:
             buton_mute_surf = buton_mute_image[1]
 
-        buton_mute_rect = buton_mute_surf.get_rect(center=(self.buton_mute_pos))
+        buton_mute_rect = buton_mute_surf.get_rect(
+            center=(self.buton_mute_pos))
         window.blit(buton_mute_surf, buton_mute_rect)
-
-
-
 
 
 def drawn_buton():
@@ -881,8 +879,8 @@ name_of_log("My GAmE")
 
 # -------------- Class variable ---------------------------
 
-second_buton_mute = Buton('imgs\\mute_sprite.png', 2, 'BLACK', 1)
-second_buton_mute.preload_images_from_sprite()
+# second_buton_mute = Buton('imgs\\mute_sprite.png', 2, 'BLACK', 1)
+# second_buton_mute.preload_images_from_sprite()
 
 # ---------------------------------------------------------
 
@@ -946,11 +944,6 @@ while running:
     # second_buton_mute.drawn_buton()
 
     # ---------------------------------------------------------
-
-
-
-
-
 
     # make screenshot after 0.5 sec
     screenshot_fun(0.5)

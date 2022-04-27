@@ -14,26 +14,23 @@ window = pygame.display.set_mode(const.windows_size)
 pause = False
 
 
-class Buton():
+class Button():
     # Creates a button
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
-        sprite_location = sprite_location
-        how_many_images = how_many_images
-        alfa_color = alfa_color
-        scaling = scaling
+        self.sprite_location = sprite_location
+        self.how_many_images = how_many_images
+        self.alfa_color = alfa_color
+        self.scaling = scaling
 
-        images_from_sprite = []
-
-        # preload_images_from_sprite()
-        pass
+        self.images_from_sprite = []
+        self.preload_images_from_sprite()
 
     def preload_images_from_sprite(self):
+        for which_frame in range(self.how_many_images):
+            self.images_from_sprite.append(self.do_sprite(
+                self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
 
-        for which_frame in range(how_many_images):
-            images_from_sprite.append(do_sprite(
-                sprite_location, how_many_images, which_frame, alfa_color, scaling))
-
-    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
+    def do_sprite(self, image, how_many_images, which_frame, alfa_color, scaling):
         spride_sheet_image = pygame.image.load(image).convert_alpha()
 
         if alfa_color.upper() == 'WHITE':
@@ -51,25 +48,42 @@ class Buton():
                    ((which_frame*width), 0, width, height))
         image = pygame.transform.scale(image, (width*scaling, height*scaling))
         image.set_colorkey(alfa_color)
-
         return image
 
-    def drawn_buton(self):
-        # global mouse_is_over_the_button, music_button_plays
-        # global music_trig, music_trig_before, p_trig_music
-
-        # ---------------------------------------------------------------------
-        # pos_mouse = pygame.mouse.get_pos()
-        buton_mute_pos = (100, 750)
+    def draw_button(self):
+        music_button_plays = False
 
         if music_button_plays:
-            buton_mute_surf = buton_mute_image[0]
+            button_surf = self.images_from_sprite[0]
         else:
-            buton_mute_surf = buton_mute_image[1]
+            button_surf = self.images_from_sprite[1]
 
-        buton_mute_rect = buton_mute_surf.get_rect(
-            center=(buton_mute_pos))
-        window.blit(buton_mute_surf, buton_mute_rect)
+        # button position
+        pos_x = window.get_width() - button_surf.get_width()
+        pos_y = window.get_height() - button_surf.get_height()
+        pos_button = pos_x, pos_y
+        # draw button
+        window.blit(button_surf, pos_button)
+
+
+
+
+         # ---------------------------------------------------------------------
+        # mouse_is_over_the_button stuff
+        buton_mute_rect = button_surf.get_rect()
+
+    
+        pos_mouse = pygame.mouse.get_pos()
+        buton_mute_mask = pygame.mask.from_surface(button_surf)
+
+        pos_in_mask = pos_mouse[0] - buton_mute_rect.x, pos_mouse[1] - buton_mute_rect.y
+
+        if buton_mute_rect.collidepoint(*pos_mouse) and buton_mute_mask.get_at(pos_in_mask):
+            mouse_is_over_the_button = True
+        else:
+            mouse_is_over_the_button = False
+
+        print(mouse_is_over_the_button)
 
 
 class Background():
@@ -98,8 +112,9 @@ class Background():
             window.fill(self.color_background)
 
     def moving_background(self, speed):
-        global delta_time
-        if delta_time == 0:
+        global delta_time, pause
+        # if there is a pause, the fast tempo is zero
+        if delta_time == 0 or pause:
             speed = 0
         window.blit(self.background_surface, (self.backgroud_pos_x[0], 0))
         # window.width == 800 - backgroud_poz_x[0]
@@ -126,9 +141,101 @@ def clock_support():
     pass
 
 
+def show_character_statistics(what):
+    # temporary
+    pos_x, pos_y = 0, 0
+    speed_y, counter_jump = 0, 0
+
+    if what.upper() == 'ALL':
+        what = 1
+    elif what.upper() == 'FPS':
+        what = 2
+    elif what.upper() == 'NONE':
+        what = 0
+
+    if not what == 0:
+        font = pygame.font.SysFont('Comic Gecko', 30)
+        position_x = 180
+        position_y = 10
+        next_width = 100
+        next_width_1 = 25
+        color_font = (255, 255, 255)
+
+        label_7 = font.render("FPS:", 1, color_font)
+        label_8 = font.render(
+            str("{:.1f}".format(clock.get_fps())), 1, color_font)
+
+        position_x -= next_width
+        window.blit(
+            label_7, (const.windows_size[0] - position_x - 15, position_y))
+        window.blit(
+            label_8, (const.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
+
+        if not what == 2:
+            label_1 = font.render("X:", 1, color_font)
+            label_2 = font.render(str(pos_x), 1, color_font)
+            label_3 = font.render("Y:", 1, color_font)
+            label_4 = font.render(str("{:.1f}".format(pos_y)), 1, color_font)
+            label_5 = font.render("R:", 1, color_font)
+            label_6 = font.render(
+                str("{:.1f}".format(const.rotate)), 1, color_font)
+            label_9 = font.render("speed_y:", 1, color_font)
+            label_10 = font.render(
+                str("{:.1f}".format(speed_y)), 1, color_font)
+            label_11 = font.render("counter_jump:", 1, color_font)
+            label_12 = font.render(str(counter_jump), 1, color_font)
+
+            # NEXT LINE
+            position_y += 50
+            position_x += next_width
+            # next stat X
+            window.blit(
+                label_1, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
+            # next stat Y
+            position_x -= next_width
+            window.blit(
+                label_3, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next line R
+            position_x += next_width
+            window.blit(
+                label_5, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next stat V
+            # next stat speed_y
+            window.blit(
+                label_9, (const.windows_size[0] - position_x, position_y))
+            window.blit(
+                label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
+
+            # NEXT LINE
+            position_y += 50
+
+            # next stat counter_jump
+            position_x += next_width
+            window.blit(
+                label_11, (const.windows_size[0] - position_x + 100, position_y))
+            window.blit(
+                label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
+
+
 # Preload background layer 0
 background_layer_0 = Background()
 
+# Preload button mute
+button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
 
 running = True
 while running:
@@ -172,7 +279,6 @@ while running:
 
     # move_character()
     # drawn_character()
-    # show_character_statistics('FPS')
 
     # drawn_buton()
 
@@ -185,9 +291,16 @@ while running:
     # key_resume()
 
     # -------------- Class variable ---------------------------
-
-    background_layer_0.background_on_off(True, 1)
     pause = False
+
+    # draws the background layer
+    background_layer_0.background_on_off(True, 1)
+
+    # FPS statistics
+    show_character_statistics('FPS')
+
+    # draw buton mute
+    button_mute.draw_button()
 
     # ---------------------------------------------------------
 

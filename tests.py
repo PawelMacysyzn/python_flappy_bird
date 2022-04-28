@@ -1,7 +1,7 @@
 import threading
 import pygame
 from pygame import mixer  # for import music
-import const  # declaration of constants
+import const
 
 # initialize pygame
 pygame.init()
@@ -147,6 +147,167 @@ class Background():
             self.backgroud_pos_x[0] = 0
 
 
+class BackgroundMusic():
+    def __init__(self, sound_path) -> None:
+        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
+        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
+
+        self.sound_path = sound_path
+        # Initialize Mixer in the program
+        mixer.init()
+        # background music
+        pygame.mixer.music.load(self.sound_path)
+
+    def do_play_music(self, play):
+        if play:
+            # The -1 argument makes the background music forever loop when it reaches the end of the sound file
+            pygame.mixer.music.play(-1)
+            print("music.play")
+        else:
+            pygame.mixer.music.stop()
+            print("music.stop")
+
+    def do_music(self, var):
+        self.var = var
+        # do once
+        # -----------------------------
+        if self.var:
+            self.trig_on_0 = True
+            if not self.trig_on_1:
+                self.trig_on_1 = True
+                self.p_trig_on = True
+            pass
+        else:
+            self.trig_on_0 = False
+            self.trig_on_1 = False
+            pass
+
+        if self.p_trig_on:
+            self.counter_trig_on += 1
+            # print("do_music(on):  ", self.counter_trig_on)
+            self.do_play_music(True)
+            self.p_trig_on = False
+        # -----------------------------
+        if not self.var:
+            self.trig_off_0 = True
+            if not self.trig_off_1:
+                self.trig_off_1 = True
+                self.p_trig_off = True
+            pass
+        else:
+            self.trig_off_0 = False
+            self.trig_off_1 = False
+            pass
+
+        if self.p_trig_off:
+            # self.counter_trig_off += 1
+            # print("do_music(off): ", self.counter_trig_off)
+            self.do_play_music(False)
+            self.p_trig_off = False
+        # -----------------------------
+        pass
+
+
+class KeyFromKeyboard():
+    def __init__(self, key, how_many_state) -> None:
+        self.key = key
+        self.curent_state = 0
+        self.how_many_state = how_many_state
+
+        if self.key.upper() == 'P':
+            self.designation_key = self.key.upper()
+            self.key = pygame.K_p
+        elif self.key.upper() == 'R':
+            self.designation_key = self.key.upper()
+            self.key = pygame.K_r
+        else:
+            pass
+
+        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
+        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
+        pass
+
+    def return_curent_state(self):
+        self.button_action()
+        if self.curent_state > self.how_many_state - 1:
+            self.curent_state = 0
+        # print(bool(self.curent_state))
+        return bool(self.curent_state)
+
+    def button_action(self):
+        key = pygame.key.get_pressed()
+
+        # do once
+        # -----------------------------
+        if key[self.key]:
+            self.trig_on_0 = True
+            if not self.trig_on_1:
+                self.trig_on_1 = True
+                self.p_trig_on = True
+            pass
+        else:
+            self.trig_on_0 = False
+            self.trig_on_1 = False
+            pass
+
+        if self.p_trig_on:
+            # self.counter_trig_on += 1
+            # print("button_action_", self.designation_key,"_(on ): ", self.counter_trig_on)
+            # implementacja umozliwia przechodzenie pomiedzy stanami przyciskow
+            self.curent_state += 1
+
+            self.p_trig_on = False
+        # -----------------------------
+        if not key[self.key]:
+            self.trig_off_0 = True
+            if not self.trig_off_1:
+                self.trig_off_1 = True
+                self.p_trig_off = True
+            pass
+        else:
+            self.trig_off_0 = False
+            self.trig_off_1 = False
+            pass
+
+        if self.p_trig_off:
+            # self.counter_trig_off += 1
+            # print("button_action_", self.designation_key,"_(off): ", self.counter_trig_off)
+            ###
+            self.p_trig_off = False
+        # -----------------------------
+        pass
+
+
+class GameTexts():
+    def __init__(self, game_texts_image, scale, co_ordinates) -> None:
+        self.game_texts_image = game_texts_image
+        self.scale = scale
+        self.co_ordinates = co_ordinates
+        self.text_surface = self.game_texts_image_preload()
+        self.text_center_pos = self.game_texts_center_pos_preload()
+        pass
+
+    def game_texts_image_preload(self):
+        text_surface = pygame.image.load(self.game_texts_image).convert_alpha()
+        text_surface = pygame.transform.scale(
+            text_surface, (text_surface.get_width()*self.scale, text_surface.get_height()*self.scale))
+        return text_surface
+
+    def game_texts_center_pos_preload(self):
+        # window center position (middle)
+        window_center_pos = window.get_width()/2, window.get_height()/2
+
+        text_surface_rect = self.text_surface.get_rect(center=(self.co_ordinates))
+        text_center_pos = window_center_pos[0] + \
+            text_surface_rect.x, window_center_pos[1]+text_surface_rect.y
+        return text_center_pos
+
+    def show_pause(self, show):
+        if show:
+            global window, game_texts_image, game_texts_center_pos
+            window.blit(self.text_surface, self.text_center_pos)
+
+
 def clock_support():
     global delta_time, pause
     # const.framerate = 60
@@ -251,65 +412,46 @@ def show_character_statistics(what):
                 label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
 
 
-class BackgroundMusic():
-    def __init__(self, sound_path) -> None:
-        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
-        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
+def name_of_log(name_str):
+    # to do, show session and user in bar
+    pygame.display.set_caption(name_str.upper())
 
-        self.sound_path = sound_path
-        # Initialize Mixer in the program
-        mixer.init()
-        # background music
-        pygame.mixer.music.load(self.sound_path)
 
-    def do_play_music(self, play):
-        if play:
-            # The -1 argument makes the background music forever loop when it reaches the end of the sound file
-            pygame.mixer.music.play(-1)
-            print("music.play")
-        else:
-            pygame.mixer.music.stop()
-            print("music.stop")
 
-    def do_music(self, var):
-        self.var = var
-        # do once
-        # -----------------------------
-        if self.var:
-            self.trig_on_0 = True
-            if not self.trig_on_1:
-                self.trig_on_1 = True
-                self.p_trig_on = True
-            pass
-        else:
-            self.trig_on_0 = False
-            self.trig_on_1 = False
-            pass
+def game_texts_center_pos_preload(game_texts_center_pos):
+    # window center position
+    window_center_pos = window.get_width()/2, window.get_height()/2
 
-        if self.p_trig_on:
-            self.counter_trig_on += 1
-            # print("do_music(on):  ", self.counter_trig_on)
-            self.do_play_music(True)
-            self.p_trig_on = False
-        # -----------------------------
-        if not self.var:
-            self.trig_off_0 = True
-            if not self.trig_off_1:
-                self.trig_off_1 = True
-                self.p_trig_off = True
-            pass
-        else:
-            self.trig_off_0 = False
-            self.trig_off_1 = False
-            pass
+    # Pause center position on window -> game_texts_center_pos[0]
+    pause_surface_rect = game_texts_image[0].get_rect(center=(50, -125))
+    pause_center_pos = window_center_pos[0] + \
+        pause_surface_rect.x, window_center_pos[1]+pause_surface_rect.y
+    game_texts_center_pos.append(pause_center_pos)
 
-        if self.p_trig_off:
-            # self.counter_trig_off += 1
-            # print("do_music(off): ", self.counter_trig_off)
-            self.do_play_music(False)
-            self.p_trig_off = False
-        # -----------------------------
-        pass
+    # Game_over center position on window -> game_texts_center_pos[1]
+    game_over_surface_rect = game_texts_image[1].get_rect(center=(25, -200))
+    game_over_center_pos = window_center_pos[0] + \
+        game_over_surface_rect.x, window_center_pos[1]+game_over_surface_rect.y
+    game_texts_center_pos.append(game_over_center_pos)
+
+    # Resume center position on window -> game_texts_center_pos[2]
+    resume_surface_rect = game_texts_image[2].get_rect(center=(25, 45))
+    resume_center_pos = window_center_pos[0] + \
+        resume_surface_rect.x, window_center_pos[1]+resume_surface_rect.y
+    game_texts_center_pos.append(resume_center_pos)
+
+
+def show_pause(show):
+    if show:
+        global window, game_texts_image, game_texts_center_pos
+        window.blit(game_texts_image[0], (game_texts_center_pos[0]))
+
+
+def show_game_over_and_resume():
+    global window, game_texts_image, game_texts_center_pos
+    window.blit(game_texts_image[1], (game_texts_center_pos[1]))
+    window.blit(game_texts_image[2], (game_texts_center_pos[2]))
+
 
 
 # Preload background layer 0
@@ -321,6 +463,21 @@ button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
 # Preload background music
 song_background = BackgroundMusic('music\\bensound-summer_ogg_music.ogg')
 
+# -----------game texts-----------------------------------
+game_texts_image_game_texts_image = ['imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
+# Preload game text pause
+pause_text = GameTexts('imgs\Pause.png', 2/3, (40, -125))
+
+#--------------------------------------------------------
+
+
+# defining the pause button
+key_pause = KeyFromKeyboard('P', 2)
+
+# defining the reset button
+key_reset = KeyFromKeyboard('R', 2)
+
+name_of_log("My Gmae")
 running = True
 while running:
 
@@ -390,6 +547,14 @@ while running:
         song_background.do_music(True)
     else:
         song_background.do_music(False)
+
+    # pause buton
+    pause = key_pause.return_curent_state()
+    # text pause
+    pause_text.show_pause(pause)
+
+    # reset buton
+    key_reset.return_curent_state()
 
     # ---------------------------------------------------------
 

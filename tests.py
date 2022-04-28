@@ -12,6 +12,8 @@ window = pygame.display.set_mode(const.windows_size)
 
 # freezes the game
 pause = False
+# clik button state
+click_button = None
 
 
 class Button():
@@ -22,6 +24,9 @@ class Button():
         self.alfa_color = alfa_color
         self.scaling = scaling
 
+        self.trig_0, self.trig_0, self.p_trig, self.counter_trig = None, None, None, 0
+
+        self.current_state = 1
         self.images_from_sprite = []
         self.preload_images_from_sprite()
 
@@ -51,39 +56,53 @@ class Button():
         return image
 
     def draw_button(self):
-        music_button_plays = False
 
-        if music_button_plays:
-            button_surf = self.images_from_sprite[0]
-        else:
-            button_surf = self.images_from_sprite[1]
+        self.button_surf = self.images_from_sprite[self.current_state]
 
         # button position
-        pos_x = window.get_width() - button_surf.get_width()
-        pos_y = window.get_height() - button_surf.get_height()
-        pos_button = pos_x, pos_y
+        pos_x = window.get_width() - self.button_surf.get_width()
+        pos_y = window.get_height() - self.button_surf.get_height()
+        self.pos_button = pos_x, pos_y
         # draw button
-        window.blit(button_surf, pos_button)
+        window.blit(self.button_surf, self.pos_button)
 
+    def mouse_is_over_the_button(self):
+        buton_rect = self.button_surf.get_rect(topleft=(self.pos_button))
+        buton_mask = pygame.mask.from_surface(self.button_surf)
 
-
-
-         # ---------------------------------------------------------------------
-        # mouse_is_over_the_button stuff
-        buton_mute_rect = button_surf.get_rect()
-
-    
+        # pos_mouse = pygame.mouse.get_pos(center=(buton_mute_rect))
         pos_mouse = pygame.mouse.get_pos()
-        buton_mute_mask = pygame.mask.from_surface(button_surf)
 
-        pos_in_mask = pos_mouse[0] - buton_mute_rect.x, pos_mouse[1] - buton_mute_rect.y
+        pos_in_mask = pos_mouse[0] - buton_rect.x, pos_mouse[1] - buton_rect.y
 
-        if buton_mute_rect.collidepoint(*pos_mouse) and buton_mute_mask.get_at(pos_in_mask):
+        if buton_rect.collidepoint(*pos_mouse) and buton_mask.get_at(pos_in_mask):
             mouse_is_over_the_button = True
         else:
             mouse_is_over_the_button = False
+        return mouse_is_over_the_button
 
-        print(mouse_is_over_the_button)
+    def change_of_state(self):
+        mouse_in_target = self.mouse_is_over_the_button()
+        # do once
+        if mouse_in_target and click_button:
+            self.trig_0 = True
+            if not self.trig_1:
+                self.trig_1 = True
+                self.p_trig = True
+            pass
+        else:
+            self.trig_0 = False
+            self.trig_1 = False
+            pass
+
+        if self.p_trig:
+            # self.counter_trig += 1
+            # print("Clik: ", self.counter_trig)
+            if self.current_state >= 1:
+                self.current_state = 0
+            else:
+                self.current_state += 1
+            self.p_trig = False
 
 
 class Background():
@@ -301,6 +320,7 @@ while running:
 
     # draw buton mute
     button_mute.draw_button()
+    button_mute.change_of_state()
 
     # ---------------------------------------------------------
 

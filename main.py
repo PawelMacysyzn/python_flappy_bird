@@ -384,64 +384,6 @@ def drawn_character():
     # Box for collision
     pygame.draw.rect(window, color1, rect_character, 1)
 
-
-class Buton():
-    # Creates a button
-    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
-        self.sprite_location = sprite_location
-        self.how_many_images = how_many_images
-        self.alfa_color = alfa_color
-        self.scaling = scaling
-
-        self.images_from_sprite = []
-
-        # self.preload_images_from_sprite()
-
-    def preload_images_from_sprite(self):
-
-        for which_frame in range(self.how_many_images):
-            self.images_from_sprite.append(self.do_sprite(
-                self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
-
-    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
-        spride_sheet_image = pygame.image.load(image).convert_alpha()
-
-        if alfa_color.upper() == 'WHITE':
-            alfa_color = (255, 255, 255)
-        elif alfa_color.upper() == 'BLACK':
-            alfa_color = (0, 0, 0)
-        elif alfa_color.upper() == 'RED':
-            alfa_color = (255, 0, 0)
-
-        width = spride_sheet_image.get_width()/how_many_images
-        height = spride_sheet_image.get_height()
-
-        image = pygame.Surface((width, height)).convert_alpha()
-        image.blit(spride_sheet_image, (0, 0),
-                   ((which_frame*width), 0, width, height))
-        image = pygame.transform.scale(image, (width*scaling, height*scaling))
-        image.set_colorkey(alfa_color)
-
-        return image
-
-    def drawn_buton(self):
-        # global mouse_is_over_the_button, music_button_plays
-        # global music_trig, music_trig_before, p_trig_music
-
-        # ---------------------------------------------------------------------
-        # pos_mouse = pygame.mouse.get_pos()
-        self.buton_mute_pos = (100, 750)
-
-        if music_button_plays:
-            buton_mute_surf = buton_mute_image[0]
-        else:
-            buton_mute_surf = buton_mute_image[1]
-
-        buton_mute_rect = buton_mute_surf.get_rect(
-            center=(self.buton_mute_pos))
-        window.blit(buton_mute_surf, buton_mute_rect)
-
-
 def drawn_buton():
     global mouse_is_over_the_button, music_button_plays
     global music_trig, music_trig_before, p_trig_music
@@ -462,7 +404,6 @@ def drawn_buton():
     # mouse_is_over_the_button stuff
 
     buton_mute_mask = pygame.mask.from_surface(buton_mute_surf)
-
     pos_in_mask = pos_mouse[0] - \
         buton_mute_rect.x, pos_mouse[1] - buton_mute_rect.y
 

@@ -1,5 +1,6 @@
 import threading
 import pygame
+from pygame import mixer  # for import music
 import const  # declaration of constants
 
 # initialize pygame
@@ -13,7 +14,7 @@ window = pygame.display.set_mode(const.windows_size)
 # freezes the game
 pause = False
 # clik button state
-click_button = None
+click_mouse = None
 
 
 class Button():
@@ -24,7 +25,7 @@ class Button():
         self.alfa_color = alfa_color
         self.scaling = scaling
 
-        self.trig_0, self.trig_0, self.p_trig, self.counter_trig = None, None, None, 0
+        self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
 
         self.current_state = 1
         self.images_from_sprite = []
@@ -84,7 +85,7 @@ class Button():
     def change_of_state(self):
         mouse_in_target = self.mouse_is_over_the_button()
         # do once
-        if mouse_in_target and click_button:
+        if mouse_in_target and click_mouse:
             self.trig_0 = True
             if not self.trig_1:
                 self.trig_1 = True
@@ -250,11 +251,52 @@ def show_character_statistics(what):
                 label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
 
 
+class BackgroundMusic():
+    def __init__(self, sound_path) -> None:
+        self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
+        self.sound_path = sound_path
+        mixer.init()
+
+    def do_play_music(self, play):
+        # Initialize Mixer in the program
+        # background music
+        pygame.mixer.music.load(self.sound_path)
+        if play:
+            # The -1 argument makes the background music forever loop when it reaches the end of the sound file
+            pygame.mixer.music.play(-1)
+            # print("music.play")
+        else:
+            pygame.mixer.music.stop()
+
+    def change_of_state(self, action):
+        # do once
+        if action:
+            self.trig_0 = True
+            if not self.trig_1:
+                self.trig_1 = True
+                self.p_trig = True
+            pass
+        else:
+            self.trig_0 = False
+            self.trig_1 = False
+            pass
+
+        if self.p_trig:
+            self.counter_trig += 1
+            print("Music: ", self.counter_trig)
+            self.do_play_music(False)
+            self.p_trig = False
+
+
+
 # Preload background layer 0
 background_layer_0 = Background()
 
 # Preload button mute
 button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
+
+# Preload background music
+song_background = BackgroundMusic('music\\bensound-summer_ogg_music.ogg')
 
 running = True
 while running:
@@ -273,9 +315,9 @@ while running:
             running = False
         # button operation
         if event.type == pygame.MOUSEBUTTONDOWN:
-            click_button = True
+            click_mouse = True
         else:
-            click_button = False
+            click_mouse = False
 
     ### MATHS ###
 
@@ -321,6 +363,10 @@ while running:
     # draw buton mute
     button_mute.draw_button()
     button_mute.change_of_state()
+    if button_mute.current_state == 1:
+        song_background.change_of_state(True)
+    else:
+        song_background.change_of_state(False)
 
     # ---------------------------------------------------------
 

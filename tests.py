@@ -253,40 +253,63 @@ def show_character_statistics(what):
 
 class BackgroundMusic():
     def __init__(self, sound_path) -> None:
-        self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
-        self.sound_path = sound_path
-        mixer.init()
+        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
+        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
 
-    def do_play_music(self, play):
+        self.sound_path = sound_path
         # Initialize Mixer in the program
+        mixer.init()
         # background music
         pygame.mixer.music.load(self.sound_path)
+
+    def do_play_music(self, play):
         if play:
             # The -1 argument makes the background music forever loop when it reaches the end of the sound file
             pygame.mixer.music.play(-1)
-            # print("music.play")
+            print("music.play")
         else:
             pygame.mixer.music.stop()
+            print("music.stop")
 
-    def change_of_state(self, action):
+    def do_music(self, var):
+        self.var = var
         # do once
-        if action:
-            self.trig_0 = True
-            if not self.trig_1:
-                self.trig_1 = True
-                self.p_trig = True
+        # -----------------------------
+        if self.var:
+            self.trig_on_0 = True
+            if not self.trig_on_1:
+                self.trig_on_1 = True
+                self.p_trig_on = True
             pass
         else:
-            self.trig_0 = False
-            self.trig_1 = False
+            self.trig_on_0 = False
+            self.trig_on_1 = False
             pass
 
-        if self.p_trig:
-            self.counter_trig += 1
-            print("Music: ", self.counter_trig)
-            self.do_play_music(False)
-            self.p_trig = False
+        if self.p_trig_on:
+            self.counter_trig_on += 1
+            # print("do_music(on):  ", self.counter_trig_on)
+            self.do_play_music(True)
+            self.p_trig_on = False
+        # -----------------------------
+        if not self.var:
+            self.trig_off_0 = True
+            if not self.trig_off_1:
+                self.trig_off_1 = True
+                self.p_trig_off = True
+            pass
+        else:
+            self.trig_off_0 = False
+            self.trig_off_1 = False
+            pass
 
+        if self.p_trig_off:
+            # self.counter_trig_off += 1
+            # print("do_music(off): ", self.counter_trig_off)
+            self.do_play_music(False)
+            self.p_trig_off = False
+        # -----------------------------
+        pass
 
 
 # Preload background layer 0
@@ -364,9 +387,9 @@ while running:
     button_mute.draw_button()
     button_mute.change_of_state()
     if button_mute.current_state == 1:
-        song_background.change_of_state(True)
+        song_background.do_music(True)
     else:
-        song_background.change_of_state(False)
+        song_background.do_music(False)
 
     # ---------------------------------------------------------
 

@@ -3,19 +3,144 @@ import pygame
 from pygame import mixer  # for import music
 import const
 
-# initialize pygame
-pygame.init()
-# initialize game clock
-clock = pygame.time.Clock()
-# Set up the drawing window
-window = pygame.display.set_mode(const.windows_size)
 
+class Game():
+    def __init__(self) -> None:
+        # initialize pygame
+        pygame.init()
+        # initialize game clock
+        self.clock = pygame.time.Clock()
+        # Set up the drawing window
+        self.window = pygame.display.set_mode(const.windows_size)
 
-# freezes the game
-pause = False
-# clik button state
-click_mouse = None
+        # freezes the game
+        self.pause = False
+        # game over
+        self.gameover = False
+        # infinite loop game
+        self.running = True
+        # shows frames in ms
+        self.delta_time = None
+        # clik button state
+        self.click_mouse = None
+        pass
 
+    def name_of_log(self, name_str):
+        # to do, show session and user in bar
+        pygame.display.set_caption(name_str.upper())
+
+    def clock_support(self):
+        # const.framerate = 60
+        # dt show how many milliseconds have passed since the previous call
+        # the program will never run at more than const.framerate frames per second
+        if game.pause:
+            self.delta_time = 0
+        else:
+            self.delta_time = self.clock.tick(const.framerate)
+        # print(delta_time, " ms")
+        # print("{:.1f} FPS".format(clock.get_fps()))
+        pass
+
+    def show_character_statistics(self, what):
+        # temporary
+        pos_x, pos_y = 0, 0
+        speed_y, counter_jump = 0, 0
+
+        if what.upper() == 'ALL':
+            what = 1
+        elif what.upper() == 'FPS':
+            what = 2
+        elif what.upper() == 'NONE':
+            what = 0
+
+        if not what == 0:
+            font = pygame.font.SysFont('Comic Gecko', 30)
+            position_x = 180
+            position_y = 10
+            next_width = 100
+            next_width_1 = 25
+            color_font = (255, 255, 255)
+
+            label_7 = font.render("FPS:", 1, color_font)
+            label_8 = font.render(
+                str("{:.1f}".format(game.clock.get_fps())), 1, color_font)
+
+            position_x -= next_width
+            self.window.blit(
+                label_7, (const.windows_size[0] - position_x - 15, position_y))
+            self.window.blit(
+                label_8, (const.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
+
+            if not what == 2:
+                label_1 = font.render("X:", 1, color_font)
+                label_2 = font.render(str(pos_x), 1, color_font)
+                label_3 = font.render("Y:", 1, color_font)
+                label_4 = font.render(
+                    str("{:.1f}".format(pos_y)), 1, color_font)
+                label_5 = font.render("R:", 1, color_font)
+                label_6 = font.render(
+                    str("{:.1f}".format(const.rotate)), 1, color_font)
+                label_9 = font.render("speed_y:", 1, color_font)
+                label_10 = font.render(
+                    str("{:.1f}".format(speed_y)), 1, color_font)
+                label_11 = font.render("counter_jump:", 1, color_font)
+                label_12 = font.render(str(counter_jump), 1, color_font)
+
+                # NEXT LINE
+                position_y += 50
+                position_x += next_width
+                # next stat X
+                window.blit(
+                    label_1, (const.windows_size[0] - position_x, position_y))
+                window.blit(
+                    label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
+                # next stat Y
+                position_x -= next_width
+                window.blit(
+                    label_3, (const.windows_size[0] - position_x, position_y))
+                window.blit(
+                    label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+                # NEXT LINE
+                position_y += 50
+
+                # next line R
+                position_x += next_width
+                window.blit(
+                    label_5, (const.windows_size[0] - position_x, position_y))
+                window.blit(
+                    label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
+
+                # NEXT LINE
+                position_y += 50
+
+                # next stat V
+                # next stat speed_y
+                window.blit(
+                    label_9, (const.windows_size[0] - position_x, position_y))
+                window.blit(
+                    label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
+
+                # NEXT LINE
+                position_y += 50
+
+                # next stat counter_jump
+                position_x += next_width
+                window.blit(
+                    label_11, (const.windows_size[0] - position_x + 100, position_y))
+                window.blit(
+                    label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
+
+    def event_handling(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # handling button "X"
+                self.running = False
+            # button operation
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.click_mouse = True
+            else:
+                self.click_mouse = False
+            pass
 
 class Button():
     # Creates a button
@@ -61,22 +186,23 @@ class Button():
         self.button_surf = self.images_from_sprite[self.current_state]
 
         # button position
-        pos_x = window.get_width() - self.button_surf.get_width()
-        pos_y = window.get_height() - self.button_surf.get_height()
+        pos_x = game.window.get_width() - self.button_surf.get_width()
+        pos_y = game.window.get_height() - self.button_surf.get_height()
         self.pos_button = pos_x, pos_y
         # draw button
-        window.blit(self.button_surf, self.pos_button)
+        game.window.blit(self.button_surf, self.pos_button)
 
     def mouse_is_over_the_button(self):
-        buton_rect = self.button_surf.get_rect(topleft=(self.pos_button))
-        buton_mask = pygame.mask.from_surface(self.button_surf)
+        button_rect = self.button_surf.get_rect(topleft=(self.pos_button))
+        button_mask = pygame.mask.from_surface(self.button_surf)
 
-        # pos_mouse = pygame.mouse.get_pos(center=(buton_mute_rect))
+        # pos_mouse = pygame.mouse.get_pos(center=(button_mute_rect))
         pos_mouse = pygame.mouse.get_pos()
 
-        pos_in_mask = pos_mouse[0] - buton_rect.x, pos_mouse[1] - buton_rect.y
+        pos_in_mask = pos_mouse[0] - \
+            button_rect.x, pos_mouse[1] - button_rect.y
 
-        if buton_rect.collidepoint(*pos_mouse) and buton_mask.get_at(pos_in_mask):
+        if button_rect.collidepoint(*pos_mouse) and button_mask.get_at(pos_in_mask):
             mouse_is_over_the_button = True
         else:
             mouse_is_over_the_button = False
@@ -85,7 +211,7 @@ class Button():
     def change_of_state(self):
         mouse_in_target = self.mouse_is_over_the_button()
         # do once
-        if mouse_in_target and click_mouse:
+        if mouse_in_target and game.click_mouse:
             self.trig_0 = True
             if not self.trig_1:
                 self.trig_1 = True
@@ -132,22 +258,22 @@ class Background():
             window.fill(self.color_background)
 
     def moving_background(self, speed):
-        global delta_time, pause
+        global delta_time
         # if there is a pause, the fast tempo is zero
-        if delta_time == 0 or pause:
+        if game.delta_time == 0 or game.pause:
             speed = 0
-        window.blit(self.background_surface, (self.backgroud_pos_x[0], 0))
+        game.window.blit(self.background_surface, (self.backgroud_pos_x[0], 0))
         # window.width == 800 - backgroud_poz_x[0]
         self.backgroud_pos_x[1] = self.background_surface.get_width() + \
             self.backgroud_pos_x[0]
-        window.blit(self.background_surface, (self.backgroud_pos_x[1], 0))
+        game.window.blit(self.background_surface, (self.backgroud_pos_x[1], 0))
         # first surface moving
         self.backgroud_pos_x[0] -= 1 * speed
         if self.backgroud_pos_x[1] == 0:
             self.backgroud_pos_x[0] = 0
 
 
-class BackgroundMusic():
+class MusicBackground():
     def __init__(self, sound_path) -> None:
         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
         self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
@@ -162,10 +288,10 @@ class BackgroundMusic():
         if play:
             # The -1 argument makes the background music forever loop when it reaches the end of the sound file
             pygame.mixer.music.play(-1)
-            print("music.play")
+            # print("music.play")
         else:
             pygame.mixer.music.stop()
-            print("music.stop")
+            # print("music.stop")
 
     def do_music(self, var):
         self.var = var
@@ -220,6 +346,9 @@ class KeyFromKeyboard():
         elif self.key.upper() == 'R':
             self.designation_key = self.key.upper()
             self.key = pygame.K_r
+        elif self.key.upper() == 'G':
+            self.designation_key = self.key.upper()
+            self.key = pygame.K_g
         else:
             pass
 
@@ -295,163 +424,21 @@ class GameTexts():
 
     def game_texts_center_pos_preload(self):
         # window center position (middle)
-        window_center_pos = window.get_width()/2, window.get_height()/2
+        window_center_pos = game.window.get_width()/2, game.window.get_height()/2
 
-        text_surface_rect = self.text_surface.get_rect(center=(self.co_ordinates))
+        text_surface_rect = self.text_surface.get_rect(
+            center=(self.co_ordinates))
         text_center_pos = window_center_pos[0] + \
             text_surface_rect.x, window_center_pos[1]+text_surface_rect.y
         return text_center_pos
 
-    def show_pause(self, show):
+    def show_text(self, show):
         if show:
-            global window, game_texts_image, game_texts_center_pos
-            window.blit(self.text_surface, self.text_center_pos)
+            game.window.blit(self.text_surface, self.text_center_pos)
 
-
-def clock_support():
-    global delta_time, pause
-    # const.framerate = 60
-    # dt show how many milliseconds have passed since the previous call
-    # the program will never run at more than const.framerate frames per second
-    if pause:
-        delta_time = 0
-    else:
-        delta_time = clock.tick(const.framerate)
-    # print(delta_time, " ms")
-    # print("{:.1f} FPS".format(clock.get_fps()))
-    pass
-
-
-def show_character_statistics(what):
-    # temporary
-    pos_x, pos_y = 0, 0
-    speed_y, counter_jump = 0, 0
-
-    if what.upper() == 'ALL':
-        what = 1
-    elif what.upper() == 'FPS':
-        what = 2
-    elif what.upper() == 'NONE':
-        what = 0
-
-    if not what == 0:
-        font = pygame.font.SysFont('Comic Gecko', 30)
-        position_x = 180
-        position_y = 10
-        next_width = 100
-        next_width_1 = 25
-        color_font = (255, 255, 255)
-
-        label_7 = font.render("FPS:", 1, color_font)
-        label_8 = font.render(
-            str("{:.1f}".format(clock.get_fps())), 1, color_font)
-
-        position_x -= next_width
-        window.blit(
-            label_7, (const.windows_size[0] - position_x - 15, position_y))
-        window.blit(
-            label_8, (const.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
-
-        if not what == 2:
-            label_1 = font.render("X:", 1, color_font)
-            label_2 = font.render(str(pos_x), 1, color_font)
-            label_3 = font.render("Y:", 1, color_font)
-            label_4 = font.render(str("{:.1f}".format(pos_y)), 1, color_font)
-            label_5 = font.render("R:", 1, color_font)
-            label_6 = font.render(
-                str("{:.1f}".format(const.rotate)), 1, color_font)
-            label_9 = font.render("speed_y:", 1, color_font)
-            label_10 = font.render(
-                str("{:.1f}".format(speed_y)), 1, color_font)
-            label_11 = font.render("counter_jump:", 1, color_font)
-            label_12 = font.render(str(counter_jump), 1, color_font)
-
-            # NEXT LINE
-            position_y += 50
-            position_x += next_width
-            # next stat X
-            window.blit(
-                label_1, (const.windows_size[0] - position_x, position_y))
-            window.blit(
-                label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
-            # next stat Y
-            position_x -= next_width
-            window.blit(
-                label_3, (const.windows_size[0] - position_x, position_y))
-            window.blit(
-                label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
-
-            # NEXT LINE
-            position_y += 50
-
-            # next line R
-            position_x += next_width
-            window.blit(
-                label_5, (const.windows_size[0] - position_x, position_y))
-            window.blit(
-                label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
-
-            # NEXT LINE
-            position_y += 50
-
-            # next stat V
-            # next stat speed_y
-            window.blit(
-                label_9, (const.windows_size[0] - position_x, position_y))
-            window.blit(
-                label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
-
-            # NEXT LINE
-            position_y += 50
-
-            # next stat counter_jump
-            position_x += next_width
-            window.blit(
-                label_11, (const.windows_size[0] - position_x + 100, position_y))
-            window.blit(
-                label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
-
-
-def name_of_log(name_str):
-    # to do, show session and user in bar
-    pygame.display.set_caption(name_str.upper())
-
-
-
-def game_texts_center_pos_preload(game_texts_center_pos):
-    # window center position
-    window_center_pos = window.get_width()/2, window.get_height()/2
-
-    # Pause center position on window -> game_texts_center_pos[0]
-    pause_surface_rect = game_texts_image[0].get_rect(center=(50, -125))
-    pause_center_pos = window_center_pos[0] + \
-        pause_surface_rect.x, window_center_pos[1]+pause_surface_rect.y
-    game_texts_center_pos.append(pause_center_pos)
-
-    # Game_over center position on window -> game_texts_center_pos[1]
-    game_over_surface_rect = game_texts_image[1].get_rect(center=(25, -200))
-    game_over_center_pos = window_center_pos[0] + \
-        game_over_surface_rect.x, window_center_pos[1]+game_over_surface_rect.y
-    game_texts_center_pos.append(game_over_center_pos)
-
-    # Resume center position on window -> game_texts_center_pos[2]
-    resume_surface_rect = game_texts_image[2].get_rect(center=(25, 45))
-    resume_center_pos = window_center_pos[0] + \
-        resume_surface_rect.x, window_center_pos[1]+resume_surface_rect.y
-    game_texts_center_pos.append(resume_center_pos)
-
-
-def show_pause(show):
-    if show:
-        global window, game_texts_image, game_texts_center_pos
-        window.blit(game_texts_image[0], (game_texts_center_pos[0]))
-
-
-def show_game_over_and_resume():
-    global window, game_texts_image, game_texts_center_pos
-    window.blit(game_texts_image[1], (game_texts_center_pos[1]))
-    window.blit(game_texts_image[2], (game_texts_center_pos[2]))
-
+# Preload game
+game = Game()
+game.name_of_log("My Gmae")
 
 
 # Preload background layer 0
@@ -461,28 +448,35 @@ background_layer_0 = Background()
 button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
 
 # Preload background music
-song_background = BackgroundMusic('music\\bensound-summer_ogg_music.ogg')
+song_background = MusicBackground('music\\bensound-summer_ogg_music.ogg')
 
 # -----------game texts-----------------------------------
-game_texts_image_game_texts_image = ['imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
+image_game_texts = [
+    'imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
 # Preload game text pause
-pause_text = GameTexts('imgs\Pause.png', 2/3, (40, -125))
+pause_text = GameTexts(image_game_texts[0], 2/3, (40, -125))
 
-#--------------------------------------------------------
+# Preload game text gameover
+gameover_text = GameTexts(image_game_texts[1], 2/3, (25, -200))
 
+# Preload game text resume
+resume_text = GameTexts(image_game_texts[2], 2/3, (25, 45))
+# --------------------------------------------------------
 
 # defining the pause button
 key_pause = KeyFromKeyboard('P', 2)
 
 # defining the reset button
-key_reset = KeyFromKeyboard('R', 2)
+key_resume = KeyFromKeyboard('R', 2)
 
-name_of_log("My Gmae")
-running = True
-while running:
+# defining the reset button
+key_test_gameover = KeyFromKeyboard('G', 2)
+
+
+while game.running:
 
     ### CLOCK ###
-    clock_support()
+    game.clock_support()
 
     ### EVENTS ###
 
@@ -490,14 +484,7 @@ while running:
     # player_death_sound_event(True)
 
     # event handling
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:  # handling button "X"
-            running = False
-        # button operation
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            click_mouse = True
-        else:
-            click_mouse = False
+    game.event_handling()
 
     ### MATHS ###
 
@@ -521,7 +508,7 @@ while running:
     # move_character()
     # drawn_character()
 
-    # drawn_buton()
+    # drawn_button()
 
     # count_points(True, True)
     # show_score()
@@ -532,15 +519,14 @@ while running:
     # key_resume()
 
     # -------------- Class variable ---------------------------
-    pause = False
 
     # draws the background layer
     background_layer_0.background_on_off(True, 1)
 
     # FPS statistics
-    show_character_statistics('FPS')
+    game.show_character_statistics('FPS')
 
-    # draw buton mute
+    # draw button mute
     button_mute.draw_button()
     button_mute.change_of_state()
     if button_mute.current_state == 1:
@@ -548,13 +534,19 @@ while running:
     else:
         song_background.do_music(False)
 
-    # pause buton
-    pause = key_pause.return_curent_state()
-    # text pause
-    pause_text.show_pause(pause)
+    # pause button
+    game.pause = key_pause.return_curent_state()
+    # show text pause
+    pause_text.show_text(game.pause)
 
-    # reset buton
-    key_reset.return_curent_state()
+    # resume button
+    key_resume.return_curent_state()
+
+    # test gameover button
+    game.gameover = key_test_gameover.return_curent_state()
+    # show text gameover
+    gameover_text.show_text(game.gameover)
+    resume_text.show_text(game.gameover)
 
     # ---------------------------------------------------------
 

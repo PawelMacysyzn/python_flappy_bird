@@ -17,6 +17,8 @@ class Game():
         self.pause = False
         # game over
         self.gameover = False
+        # resume
+        self.resume = False
         # infinite loop game
         self.running = True
         # shows frames in ms
@@ -90,15 +92,15 @@ class Game():
                 position_y += 50
                 position_x += next_width
                 # next stat X
-                window.blit(
+                self.window.blit(
                     label_1, (const.windows_size[0] - position_x, position_y))
-                window.blit(
+                self.window.blit(
                     label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
                 # next stat Y
                 position_x -= next_width
-                window.blit(
+                self.window.blit(
                     label_3, (const.windows_size[0] - position_x, position_y))
-                window.blit(
+                self.window.blit(
                     label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
 
                 # NEXT LINE
@@ -106,9 +108,9 @@ class Game():
 
                 # next line R
                 position_x += next_width
-                window.blit(
+                self.window.blit(
                     label_5, (const.windows_size[0] - position_x, position_y))
-                window.blit(
+                self.window.blit(
                     label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
 
                 # NEXT LINE
@@ -116,9 +118,9 @@ class Game():
 
                 # next stat V
                 # next stat speed_y
-                window.blit(
+                self.window.blit(
                     label_9, (const.windows_size[0] - position_x, position_y))
-                window.blit(
+                self.window.blit(
                     label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
 
                 # NEXT LINE
@@ -126,9 +128,9 @@ class Game():
 
                 # next stat counter_jump
                 position_x += next_width
-                window.blit(
+                self.window.blit(
                     label_11, (const.windows_size[0] - position_x + 100, position_y))
-                window.blit(
+                self.window.blit(
                     label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
 
     def event_handling(self):
@@ -142,6 +144,71 @@ class Game():
                 self.click_mouse = False
             pass
 
+    def logic_gameover_pause_resume(self):
+        # pause key
+        self.pause = key_pause.return_curent_state()
+
+        # test gameover key ! to delete !
+        self.gameover = key_test_gameover.return_curent_state()
+
+        # resume key
+        self.resume = key_resume.return_trig()
+
+        if self.gameover:
+            key_pause.reset()
+            button_mute.reset(True)
+        else:
+            button_mute.reset(False)
+
+        if self.gameover and self.resume:
+            self.gameover = False
+            key_test_gameover.curent_state = 0
+            key_test_gameover.reset()
+            button_mute.set_state()
+
+    def logic_buton_mute(self):
+        # draw button mute
+        button_mute.draw_button()
+        button_mute.change_of_state()
+        if button_mute.current_state == 1:
+            song_background.do_music(True)
+        else:
+            song_background.do_music(False)
+
+# class Pulse():
+#     def __init__(self) -> None:
+#         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
+#         self.pulse = None
+#     pass
+
+#     def return_trig(self):
+#         key = pygame.key.get_pressed()
+#         self.pulse = False
+#         # do once
+#         # -----------------------------
+#         if key[self.key]:
+#             self.trig_on_0 = True
+#             if not self.trig_on_1:
+#                 self.trig_on_1 = True
+#                 self.p_trig_on = True
+#             pass
+#         else:
+#             self.trig_on_0 = False
+#             self.trig_on_1 = False
+#             pass
+
+#         if self.p_trig_on:
+#             # self.counter_trig_on += 1
+#             # print("button_action_", self.designation_key,
+#             #   "_(on ): ", self.counter_trig_on)
+
+#             self.pulse = True
+
+#             self.p_trig_on = False
+#         # -----------------------------
+#         return self.pulse
+
+
 class Button():
     # Creates a button
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
@@ -151,6 +218,7 @@ class Button():
         self.scaling = scaling
 
         self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
+        self.res_trig_0, self.res_trig_1, self.res_p_trig, self.res_counter_trig = None, None, None, 0
 
         self.current_state = 1
         self.images_from_sprite = []
@@ -231,6 +299,28 @@ class Button():
                 self.current_state += 1
             self.p_trig = False
 
+    def reset(self, arg):
+        # do once
+        if arg:
+            self.res_trig_0 = True
+            if not self.res_trig_1:
+                self.res_trig_1 = True
+                self.res_p_trig = True
+            pass
+        else:
+            self.res_trig_0 = False
+            self.res_trig_1 = False
+            pass
+
+        if self.res_p_trig:
+            # self.res_counter_trig += 1
+            # print("reset: ", self.res_counter_trig)
+            self.current_state = 0
+            self.res_p_trig = False
+
+    def set_state(self):
+        self.current_state = 1
+
 
 class Background():
     def __init__(self) -> None:
@@ -255,7 +345,7 @@ class Background():
             # threading.Thread(target = moving_background, args=[]).start()
             self.moving_background(self.speed)
         else:
-            window.fill(self.color_background)
+            game.window.fill(self.color_background)
 
     def moving_background(self, speed):
         global delta_time
@@ -354,18 +444,19 @@ class KeyFromKeyboard():
 
         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
         self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
+        self.pulse = None
         pass
 
     def return_curent_state(self):
-        self.button_action()
+        self.return_trig()
         if self.curent_state > self.how_many_state - 1:
             self.curent_state = 0
         # print(bool(self.curent_state))
         return bool(self.curent_state)
 
-    def button_action(self):
+    def return_trig(self):
         key = pygame.key.get_pressed()
-
+        self.pulse = False
         # do once
         # -----------------------------
         if key[self.key]:
@@ -381,8 +472,10 @@ class KeyFromKeyboard():
 
         if self.p_trig_on:
             # self.counter_trig_on += 1
-            # print("button_action_", self.designation_key,"_(on ): ", self.counter_trig_on)
-            # implementacja umozliwia przechodzenie pomiedzy stanami przyciskow
+            # print("button_action_", self.designation_key,
+            #   "_(on ): ", self.counter_trig_on)
+
+            self.pulse = True
             self.curent_state += 1
 
             self.p_trig_on = False
@@ -404,7 +497,10 @@ class KeyFromKeyboard():
             ###
             self.p_trig_off = False
         # -----------------------------
-        pass
+        return self.pulse
+
+    def reset(self):
+        self.curent_state = 0
 
 
 class GameTexts():
@@ -435,6 +531,8 @@ class GameTexts():
     def show_text(self, show):
         if show:
             game.window.blit(self.text_surface, self.text_center_pos)
+        pass
+
 
 # Preload game
 game = Game()
@@ -519,6 +617,8 @@ while game.running:
     # key_resume()
 
     # -------------- Class variable ---------------------------
+    # logic
+    game.logic_gameover_pause_resume()
 
     # draws the background layer
     background_layer_0.background_on_off(True, 1)
@@ -528,24 +628,14 @@ while game.running:
 
     # draw button mute
     button_mute.draw_button()
-    button_mute.change_of_state()
-    if button_mute.current_state == 1:
-        song_background.do_music(True)
-    else:
-        song_background.do_music(False)
+    game.logic_buton_mute()
 
-    # pause button
-    game.pause = key_pause.return_curent_state()
     # show text pause
     pause_text.show_text(game.pause)
 
-    # resume button
-    key_resume.return_curent_state()
-
-    # test gameover button
-    game.gameover = key_test_gameover.return_curent_state()
     # show text gameover
     gameover_text.show_text(game.gameover)
+    # show text resume
     resume_text.show_text(game.gameover)
 
     # ---------------------------------------------------------

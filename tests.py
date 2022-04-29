@@ -4,6 +4,74 @@ from pygame import mixer  # for import music
 import const
 
 
+class Trig():
+    def __init__(self) -> None:
+        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
+        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
+        self.pulse = None
+
+        self.curent_state = 0
+        pass
+
+    def return_curent_state(self, how_many_state):
+        key = pygame.key.get_pressed()
+        if self.return_trig(key[pygame.K_i]):
+            self.curent_state += 1
+
+        if self.curent_state > how_many_state - 1:
+            self.curent_state = 0
+        print(bool(self.curent_state))
+        return bool(self.curent_state)
+
+    def return_trig(self, event):
+        # ----- for test ------
+        show_statistics = False
+        # ---------------------
+
+        self.pulse = False
+        # do once
+        # -----------------------------
+        if event:
+            self.trig_on_0 = True
+            if not self.trig_on_1:
+                self.trig_on_1 = True
+                self.p_trig_on = True
+            pass
+        else:
+            self.trig_on_0 = False
+            self.trig_on_1 = False
+            pass
+
+        if self.p_trig_on:
+            if show_statistics:
+                self.counter_trig_on += 1
+                print("return_trig_(on ): ", self.counter_trig_on)
+
+            self.pulse = True
+
+            self.p_trig_on = False
+        # -----------------------------
+        if not event:
+            self.trig_off_0 = True
+            if not self.trig_off_1:
+                self.trig_off_1 = True
+                self.p_trig_off = True
+            pass
+        else:
+            self.trig_off_0 = False
+            self.trig_off_1 = False
+            pass
+
+        if self.p_trig_off:
+            if show_statistics:
+                self.counter_trig_off += 1
+                print("return_trig_(off): ", self.counter_trig_off)
+            ### negative trig ###
+            self.p_trig_off = False
+        # -----------------------------
+        return self.pulse
+
+
 class Game():
     def __init__(self) -> None:
         # initialize pygame
@@ -35,7 +103,8 @@ class Game():
         # const.framerate = 60
         # dt show how many milliseconds have passed since the previous call
         # the program will never run at more than const.framerate frames per second
-        if game.pause:
+        # if pause or game over is pressed freeze the game
+        if game.pause or game.gameover:
             self.delta_time = 0
         else:
             self.delta_time = self.clock.tick(const.framerate)
@@ -174,39 +243,6 @@ class Game():
             song_background.do_music(True)
         else:
             song_background.do_music(False)
-
-# class Pulse():
-#     def __init__(self) -> None:
-#         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
-#         self.pulse = None
-#     pass
-
-#     def return_trig(self):
-#         key = pygame.key.get_pressed()
-#         self.pulse = False
-#         # do once
-#         # -----------------------------
-#         if key[self.key]:
-#             self.trig_on_0 = True
-#             if not self.trig_on_1:
-#                 self.trig_on_1 = True
-#                 self.p_trig_on = True
-#             pass
-#         else:
-#             self.trig_on_0 = False
-#             self.trig_on_1 = False
-#             pass
-
-#         if self.p_trig_on:
-#             # self.counter_trig_on += 1
-#             # print("button_action_", self.designation_key,
-#             #   "_(on ): ", self.counter_trig_on)
-
-#             self.pulse = True
-
-#             self.p_trig_on = False
-#         # -----------------------------
-#         return self.pulse
 
 
 class Button():
@@ -350,7 +386,7 @@ class Background():
     def moving_background(self, speed):
         global delta_time
         # if there is a pause, the fast tempo is zero
-        if game.delta_time == 0 or game.pause:
+        if game.delta_time == 0 or game.pause or game.gameover:
             speed = 0
         game.window.blit(self.background_surface, (self.backgroud_pos_x[0], 0))
         # window.width == 800 - backgroud_poz_x[0]
@@ -561,14 +597,21 @@ gameover_text = GameTexts(image_game_texts[1], 2/3, (25, -200))
 resume_text = GameTexts(image_game_texts[2], 2/3, (25, 45))
 # --------------------------------------------------------
 
-# defining the pause button
+# defining the pause key
 key_pause = KeyFromKeyboard('P', 2)
 
-# defining the reset button
+# defining the reset key
 key_resume = KeyFromKeyboard('R', 2)
 
-# defining the reset button
+#----------- TEST ------------------------
+
+# defining the gameover key
 key_test_gameover = KeyFromKeyboard('G', 2)
+
+# defining rhe test key for Trig class
+key_test_for_Trig_class = Trig()
+
+#------------------------------------------
 
 
 while game.running:
@@ -617,7 +660,7 @@ while game.running:
     # key_resume()
 
     # -------------- Class variable ---------------------------
-    # logic
+    # *** LOGIC ****
     game.logic_gameover_pause_resume()
 
     # draws the background layer
@@ -637,6 +680,10 @@ while game.running:
     gameover_text.show_text(game.gameover)
     # show text resume
     resume_text.show_text(game.gameover)
+
+
+    # for test class Trig
+    key_test_for_Trig_class.return_curent_state(2)
 
     # ---------------------------------------------------------
 

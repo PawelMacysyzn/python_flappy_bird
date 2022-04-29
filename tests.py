@@ -6,70 +6,68 @@ import const
 
 class Trig():
     def __init__(self) -> None:
-        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
-        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
-        self.pulse = None
-
-        self.curent_state = 0
+        self.__trig_on, self.__p_trig_on, self.__counter_trig_on = None, None, 0
+        self.__trig_off, self.__p_trig_off, self.__counter_trig_off = None, None, 0
+        self.__pulse = None
+        self.__curent_state = 0
         pass
 
-    def return_curent_state(self, how_many_state):
-        key = pygame.key.get_pressed()
-        if self.return_trig(key[pygame.K_i]):
-            self.curent_state += 1
+    def return_curent_state(self, event, how_many_state):
+        if self.return_trig(event):
+            self.__curent_state += 1
 
-        if self.curent_state > how_many_state - 1:
-            self.curent_state = 0
-        print(bool(self.curent_state))
-        return bool(self.curent_state)
+        if self.__curent_state > how_many_state - 1:
+            self.__curent_state = 0
+        return bool(self.__curent_state)
 
     def return_trig(self, event):
         # ----- for test ------
         show_statistics = False
-        # ---------------------
-
-        self.pulse = False
-        # do once
-        # -----------------------------
+        # ---------It IS ONLY PERFORMED ONCE------------
+        self.__pulse = False
+        # -----------pulse trig on----------------
         if event:
-            self.trig_on_0 = True
-            if not self.trig_on_1:
-                self.trig_on_1 = True
-                self.p_trig_on = True
+            # self.__trig_on_0 = True
+            if not self.__trig_on:
+                self.__trig_on = True
+                self.__p_trig_on = True
             pass
         else:
-            self.trig_on_0 = False
-            self.trig_on_1 = False
+            # self.__trig_on_0 = False
+            self.__trig_on = False
             pass
 
-        if self.p_trig_on:
+        if self.__p_trig_on:
             if show_statistics:
-                self.counter_trig_on += 1
-                print("return_trig_(on ): ", self.counter_trig_on)
+                self.__counter_trig_on += 1
+                print("return_trig_(on ): ", self.__counter_trig_on)
 
-            self.pulse = True
+            self.__pulse = True
 
-            self.p_trig_on = False
-        # -----------------------------
+            self.__p_trig_on = False
+        # -----------pulse trig off----------------
         if not event:
-            self.trig_off_0 = True
-            if not self.trig_off_1:
-                self.trig_off_1 = True
-                self.p_trig_off = True
+            # self.__trig_off_0 = True
+            if not self.__trig_off:
+                self.__trig_off = True
+                self.__p_trig_off = True
             pass
         else:
-            self.trig_off_0 = False
-            self.trig_off_1 = False
+            # self.__trig_off_0 = False
+            self.__trig_off = False
             pass
 
-        if self.p_trig_off:
+        if self.__p_trig_off:
             if show_statistics:
-                self.counter_trig_off += 1
-                print("return_trig_(off): ", self.counter_trig_off)
+                self.__counter_trig_off += 1
+                print("return_trig_(off): ", self.__counter_trig_off)
             ### negative trig ###
-            self.p_trig_off = False
+            self.__p_trig_off = False
         # -----------------------------
-        return self.pulse
+        return self.__pulse
+
+    def reset(self):
+        self.__curent_state = 0
 
 
 class Game():
@@ -206,7 +204,7 @@ class Game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:  # handling button "X"
                 self.running = False
-            # button operation
+            # mouse button operation
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.click_mouse = True
             else:
@@ -215,13 +213,15 @@ class Game():
 
     def logic_gameover_pause_resume(self):
         # pause key
-        self.pause = key_pause.return_curent_state()
+        if not self.gameover:
+            self.pause = key_pause.return_curent_state()
 
         # test gameover key ! to delete !
-        self.gameover = key_test_gameover.return_curent_state()
+        if not self.pause:
+            self.gameover = key_test_gameover.return_curent_state()
 
         # resume key
-        self.resume = key_resume.return_trig()
+        self.resume = key_resume.key_return_trig()
 
         if self.gameover:
             key_pause.reset()
@@ -231,9 +231,10 @@ class Game():
 
         if self.gameover and self.resume:
             self.gameover = False
-            key_test_gameover.curent_state = 0
             key_test_gameover.reset()
             button_mute.set_state()
+            
+        # print("P:", self.pause, " G:", self.gameover, " R:", self.resume)
 
     def logic_buton_mute(self):
         # draw button mute
@@ -460,83 +461,34 @@ class MusicBackground():
         pass
 
 
-class KeyFromKeyboard():
+class KeyFromKeyboard(Trig):
     def __init__(self, key, how_many_state) -> None:
+        super().__init__()
         self.key = key
-        self.curent_state = 0
         self.how_many_state = how_many_state
 
         if self.key.upper() == 'P':
-            self.designation_key = self.key.upper()
+            # self.designation_key = self.key.upper()
             self.key = pygame.K_p
         elif self.key.upper() == 'R':
-            self.designation_key = self.key.upper()
+            # self.designation_key = self.key.upper()
             self.key = pygame.K_r
         elif self.key.upper() == 'G':
-            self.designation_key = self.key.upper()
+            # self.designation_key = self.key.upper()
             self.key = pygame.K_g
         else:
             pass
-
-        self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
-        self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
-        self.pulse = None
         pass
 
-    def return_curent_state(self):
-        self.return_trig()
-        if self.curent_state > self.how_many_state - 1:
-            self.curent_state = 0
-        # print(bool(self.curent_state))
-        return bool(self.curent_state)
-
-    def return_trig(self):
+    def do_event(self):
         key = pygame.key.get_pressed()
-        self.pulse = False
-        # do once
-        # -----------------------------
-        if key[self.key]:
-            self.trig_on_0 = True
-            if not self.trig_on_1:
-                self.trig_on_1 = True
-                self.p_trig_on = True
-            pass
-        else:
-            self.trig_on_0 = False
-            self.trig_on_1 = False
-            pass
+        return key[self.key]
 
-        if self.p_trig_on:
-            # self.counter_trig_on += 1
-            # print("button_action_", self.designation_key,
-            #   "_(on ): ", self.counter_trig_on)
+    def return_curent_state(self):
+        return super().return_curent_state(self.do_event(), self.how_many_state)
 
-            self.pulse = True
-            self.curent_state += 1
-
-            self.p_trig_on = False
-        # -----------------------------
-        if not key[self.key]:
-            self.trig_off_0 = True
-            if not self.trig_off_1:
-                self.trig_off_1 = True
-                self.p_trig_off = True
-            pass
-        else:
-            self.trig_off_0 = False
-            self.trig_off_1 = False
-            pass
-
-        if self.p_trig_off:
-            # self.counter_trig_off += 1
-            # print("button_action_", self.designation_key,"_(off): ", self.counter_trig_off)
-            ###
-            self.p_trig_off = False
-        # -----------------------------
-        return self.pulse
-
-    def reset(self):
-        self.curent_state = 0
+    def key_return_trig(self):
+        return super().return_trig(self.do_event())
 
 
 class GameTexts():
@@ -603,7 +555,7 @@ key_pause = KeyFromKeyboard('P', 2)
 # defining the reset key
 key_resume = KeyFromKeyboard('R', 2)
 
-#----------- TEST ------------------------
+# ----------- TEST ------------------------
 
 # defining the gameover key
 key_test_gameover = KeyFromKeyboard('G', 2)
@@ -611,7 +563,7 @@ key_test_gameover = KeyFromKeyboard('G', 2)
 # defining rhe test key for Trig class
 key_test_for_Trig_class = Trig()
 
-#------------------------------------------
+# ------------------------------------------
 
 
 while game.running:
@@ -680,10 +632,6 @@ while game.running:
     gameover_text.show_text(game.gameover)
     # show text resume
     resume_text.show_text(game.gameover)
-
-
-    # for test class Trig
-    key_test_for_Trig_class.return_curent_state(2)
 
     # ---------------------------------------------------------
 

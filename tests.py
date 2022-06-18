@@ -1,10 +1,11 @@
 import threading
 import pygame
 from pygame import mixer  # for import music
+from random import randint  # for generate walls
 import const
 
 
-class Trig():
+class Trig:
     def __init__(self) -> None:
         self.__trig_on, self.__p_trig_on, self.__counter_trig_on = None, None, 0
         self.__trig_off, self.__p_trig_off, self.__counter_trig_off = None, None, 0
@@ -70,7 +71,8 @@ class Trig():
         self.__curent_state = 0
 
 
-class Game():
+class Game:
+    
     def __init__(self) -> None:
         # initialize pygame
         pygame.init()
@@ -233,8 +235,9 @@ class Game():
             self.gameover = False
             key_test_gameover.reset()
             button_mute.set_state()
-            
-        # print("P:", self.pause, " G:", self.gameover, " R:", self.resume)
+
+            # print("P:", self.pause, " G:", self.gameover, " R:", self.resume)
+            pass
 
     def logic_buton_mute(self):
         # draw button mute
@@ -246,7 +249,7 @@ class Game():
             song_background.do_music(False)
 
 
-class Button():
+class Button:
     # Creates a button
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
         self.sprite_location = sprite_location
@@ -359,7 +362,7 @@ class Button():
         self.current_state = 1
 
 
-class Background():
+class Background:
     def __init__(self) -> None:
         # backgroud position x, position y is const == 0
         self.backgroud_pos_x = []
@@ -400,7 +403,7 @@ class Background():
             self.backgroud_pos_x[0] = 0
 
 
-class MusicBackground():
+class MusicBackground:
     def __init__(self, sound_path) -> None:
         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
         self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
@@ -491,7 +494,7 @@ class KeyFromKeyboard(Trig):
         return super().return_trig(self.do_event())
 
 
-class GameTexts():
+class GameTexts:
     def __init__(self, game_texts_image, scale, co_ordinates) -> None:
         self.game_texts_image = game_texts_image
         self.scale = scale
@@ -522,10 +525,70 @@ class GameTexts():
         pass
 
 
+class Obstacle:
+    '''
+    Obstacle - is responsible for generating the obstacle
+    '''
+    def __init__(self, gap, wall_speed, obstacle_image) -> None:
+        '''
+        gap - sets the spacing between the walls \n
+        wall_speed - sets speed of moving walls \n
+        obstacle_image - location of the .png file \n
+
+        '''
+        self.walls = []  # adding new wall (up and down site)
+        self.gap = gap
+        self.wall_speed = wall_speed
+        self.wall_speed_y = 0 # because no move in y directions
+        self.obstacle_image_down = pygame.image.load(obstacle_image).convert_alpha()
+        self.obstacle_image_up = pygame.transform.flip(self.obstacle_image_down, False, True)
+
+        print('Class Obsticle')
+
+
+    def once_generate_walls(self):
+        position = randint(const.corridor_range[0], const.corridor_range[1])
+        # upper wall - x position, y position, x size, y size
+        self.walls.append(pygame.Rect(
+            const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
+        # lower wall - x position, y position, x size, y size
+        self.walls.append(pygame.Rect(
+            const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
+        print('once generate walls')
+
+    def generate_walls_with_gap(self):
+        if len(self.walls) > 0:
+            if self.walls[len(self.walls)-1].left < game.window.get_width() - self.gap:
+                threading.Thread(target=self.once_generate_walls(), args=[]).start()
+
+    def draws_obstacles(self):
+        for wall in self.walls:
+            # draw pipes shadows
+            # pygame.draw.rect(window, const.color_of_walls, wall)
+            if wall[1] == 0:
+                game.window.blit(self.obstacle_image_up, (wall[0], wall[3] - 800))
+            else:
+                game.window.blit(self.obstacle_image_down, (wall[0], wall[1]))
+
+    def remove_walls(self):
+        for wall in self.walls:
+            if wall.right < 0:
+                self.walls.remove(wall)
+
+    def move_walls(self):
+        for wall in self.walls:
+            if not(game.delta_time == 0):
+                wall.move_ip(-self.wall_speed_x / game.delta_time, self.wall_speed_y)
+        
+
+
+
 # Preload game
 game = Game()
 game.name_of_log("My Gmae")
 
+# Preload obstacle
+obstacle = Obstacle(400, 100, r'imgs\pipe-green.png')
 
 # Preload background layer 0
 background_layer_0 = Background()
@@ -537,8 +600,7 @@ button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
 song_background = MusicBackground('music\\bensound-summer_ogg_music.ogg')
 
 # -----------game texts-----------------------------------
-image_game_texts = [
-    'imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
+image_game_texts = ['imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
 # Preload game text pause
 pause_text = GameTexts(image_game_texts[0], 2/3, (40, -125))
 
@@ -620,6 +682,11 @@ while game.running:
 
     # FPS statistics
     game.show_character_statistics('FPS')
+
+    # draw obstacle
+    obstacle.once_generate_walls()
+    obstacle.draws_obstacles()
+    obstacle.move_walls()
 
     # draw button mute
     button_mute.draw_button()

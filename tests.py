@@ -214,6 +214,12 @@ class Game:
             pass
 
     def logic_gameover_pause_resume(self):
+        '''
+        handling:   \n
+        - pause key   (freezes the game, allow for re-opening)      \n
+        - gameover    (freezes the game)                            \n
+        - resume game (clear all obsticles; resume the game)        \n
+        '''
         # pause key
         if not self.gameover:
             self.pause = key_pause.return_curent_state()
@@ -228,6 +234,7 @@ class Game:
         if self.gameover:
             key_pause.reset()
             button_mute.reset(True)
+
         else:
             button_mute.reset(False)
 
@@ -236,6 +243,8 @@ class Game:
             key_test_gameover.reset()
             button_mute.set_state()
 
+            # clear all obsticles
+            obstacle.remove_all_items()
             # print("P:", self.pause, " G:", self.gameover, " R:", self.resume)
             pass
 
@@ -538,25 +547,23 @@ class Obstacle:
         '''
         self.walls = []  # adding new wall (up and down site)
         self.gap = gap
-        self.wall_speed = wall_speed
+        self.wall_speed_x = wall_speed
         self.wall_speed_y = 0 # because no move in y directions
         self.obstacle_image_down = pygame.image.load(obstacle_image).convert_alpha()
         self.obstacle_image_up = pygame.transform.flip(self.obstacle_image_down, False, True)
 
-        print('Class Obsticle')
-
-
     def once_generate_walls(self):
         position = randint(const.corridor_range[0], const.corridor_range[1])
         # upper wall - x position, y position, x size, y size
-        self.walls.append(pygame.Rect(
-            const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
+        self.walls.append(pygame.Rect(const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
         # lower wall - x position, y position, x size, y size
-        self.walls.append(pygame.Rect(
-            const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
-        print('once generate walls')
+        self.walls.append(pygame.Rect(const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
 
     def generate_walls_with_gap(self):
+        # if amount of obstacles is 0 then 
+        if len(self.walls) == 0:
+            self.once_generate_walls()
+
         if len(self.walls) > 0:
             if self.walls[len(self.walls)-1].left < game.window.get_width() - self.gap:
                 threading.Thread(target=self.once_generate_walls(), args=[]).start()
@@ -579,7 +586,11 @@ class Obstacle:
         for wall in self.walls:
             if not(game.delta_time == 0):
                 wall.move_ip(-self.wall_speed_x / game.delta_time, self.wall_speed_y)
-        
+                
+    def remove_all_items(self):
+        self.walls.clear()
+        pass
+
 
 
 
@@ -630,64 +641,34 @@ key_test_for_Trig_class = Trig()
 
 while game.running:
 
+    # -------------- Class variable ---------------------------
+
     ### CLOCK ###
     game.clock_support()
 
     ### EVENTS ###
-
-    # death sound effectw
-    # player_death_sound_event(True)
-
-    # event handling
     game.event_handling()
 
-    ### MATHS ###
-
-    # Generate walls
-    # generate_walls_with_gap(600)
-
-    # Remove walls after they reach end of screen
-    # remove_walls()
-
-    # # Move Walls
-    # move_walls()
-
-    ### DRAWING ####
-
-    # Fill the background
-
-    # Draw walls
-    # threading.Thread(target=draws_obstacles, args=[
-    #                  walls_image[0], walls_image[1]]).start()
-
-    # move_character()
-    # drawn_character()
-
-    # drawn_button()
-
-    # count_points(True, True)
-    # show_score()
-
-    # key_pause(game_over_fun_active)
-    # game_over(True)
-    # threading.Thread(target=game_over, args=[True]).start()
-    # key_resume()
-
-    # -------------- Class variable ---------------------------
-    # *** LOGIC ****
+    ### LOGIC ###
     game.logic_gameover_pause_resume()
+
+    obstacle.generate_walls_with_gap()
 
     # draws the background layer
     background_layer_0.background_on_off(True, 1)
 
-    # FPS statistics
-    game.show_character_statistics('FPS')
-
     # draw obstacle
-    obstacle.once_generate_walls()
     obstacle.draws_obstacles()
+
+    # move walls
     obstacle.move_walls()
 
+    # remove the obstacles after crossing the edge of the screen
+    obstacle.remove_walls()
+
+    # FPS statistics
+    game.show_character_statistics('FPS')
+    
     # draw button mute
     button_mute.draw_button()
     game.logic_buton_mute()

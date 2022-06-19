@@ -72,7 +72,7 @@ class Trig:
 
 
 class Game:
-    
+
     def __init__(self) -> None:
         # initialize pygame
         pygame.init()
@@ -259,8 +259,16 @@ class Game:
 
 
 class Button:
-    # Creates a button
+    """
+    Creates a button
+    """
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+        '''
+        * sprite_location (str) - path of sprite
+        * how_many_images (int) - how many images in sprite
+        * alfa_color (str) - base color
+        * scaling (float or int) - scaling by this value
+        '''
         self.sprite_location = sprite_location
         self.how_many_images = how_many_images
         self.alfa_color = alfa_color
@@ -271,6 +279,7 @@ class Button:
 
         self.current_state = 1
         self.images_from_sprite = []
+
         self.preload_images_from_sprite()
 
     def preload_images_from_sprite(self):
@@ -278,7 +287,8 @@ class Button:
             self.images_from_sprite.append(self.do_sprite(
                 self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
 
-    def do_sprite(self, image, how_many_images, which_frame, alfa_color, scaling):
+    @staticmethod
+    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
         spride_sheet_image = pygame.image.load(image).convert_alpha()
 
         if alfa_color.upper() == 'WHITE':
@@ -474,7 +484,15 @@ class MusicBackground:
 
 
 class KeyFromKeyboard(Trig):
+    '''
+    Is responsible for the button handle
+    '''
+
     def __init__(self, key, how_many_state) -> None:
+        '''
+        * key - which key ( str_symbolic_name )
+        * how_many_state - how many states does the button have ( int )
+        '''
         super().__init__()
         self.key = key
         self.how_many_state = how_many_state
@@ -488,6 +506,9 @@ class KeyFromKeyboard(Trig):
         elif self.key.upper() == 'G':
             # self.designation_key = self.key.upper()
             self.key = pygame.K_g
+        elif self.key.upper() == 'SPACE':
+            # self.designation_key = self.key.upper()
+            self.key = pygame.K_SPACE
         else:
             pass
         pass
@@ -538,6 +559,7 @@ class Obstacle:
     '''
     Obstacle - is responsible for generating the obstacle
     '''
+
     def __init__(self, gap, wall_speed, obstacle_image) -> None:
         '''
         gap - sets the spacing between the walls \n
@@ -548,32 +570,38 @@ class Obstacle:
         self.walls = []  # adding new wall (up and down site)
         self.gap = gap
         self.wall_speed_x = wall_speed
-        self.wall_speed_y = 0 # because no move in y directions
-        self.obstacle_image_down = pygame.image.load(obstacle_image).convert_alpha()
-        self.obstacle_image_up = pygame.transform.flip(self.obstacle_image_down, False, True)
+        self.wall_speed_y = 0  # because no move in y directions
+        self.obstacle_image_down = pygame.image.load(
+            obstacle_image).convert_alpha()
+        self.obstacle_image_up = pygame.transform.flip(
+            self.obstacle_image_down, False, True)
 
     def once_generate_walls(self):
         position = randint(const.corridor_range[0], const.corridor_range[1])
         # upper wall - x position, y position, x size, y size
-        self.walls.append(pygame.Rect(const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
+        self.walls.append(pygame.Rect(
+            const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
         # lower wall - x position, y position, x size, y size
-        self.walls.append(pygame.Rect(const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
+        self.walls.append(pygame.Rect(
+            const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
 
     def generate_walls_with_gap(self):
-        # if amount of obstacles is 0 then 
+        # if amount of obstacles is 0 then
         if len(self.walls) == 0:
             self.once_generate_walls()
 
         if len(self.walls) > 0:
             if self.walls[len(self.walls)-1].left < game.window.get_width() - self.gap:
-                threading.Thread(target=self.once_generate_walls(), args=[]).start()
+                threading.Thread(
+                    target=self.once_generate_walls(), args=[]).start()
 
     def draws_obstacles(self):
         for wall in self.walls:
             # draw pipes shadows
             # pygame.draw.rect(window, const.color_of_walls, wall)
             if wall[1] == 0:
-                game.window.blit(self.obstacle_image_up, (wall[0], wall[3] - 800))
+                game.window.blit(self.obstacle_image_up,
+                                 (wall[0], wall[3] - 800))
             else:
                 game.window.blit(self.obstacle_image_down, (wall[0], wall[1]))
 
@@ -585,21 +613,242 @@ class Obstacle:
     def move_walls(self):
         for wall in self.walls:
             if not(game.delta_time == 0):
-                wall.move_ip(-self.wall_speed_x / game.delta_time, self.wall_speed_y)
-                
+                wall.move_ip(-self.wall_speed_x /
+                             game.delta_time, self.wall_speed_y)
+
     def remove_all_items(self):
         self.walls.clear()
         pass
 
 
+class Player(Button):
+    '''
+    Create new player
+    '''
+    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+        '''
+        * sprite_location (str) - path of sprite
+        * how_many_images (int) - how many images in sprite
+        * alfa_color (str) - base color
+        * scaling (float or int) - scaling by this value
+        '''
+        super().__init__(sprite_location, how_many_images, alfa_color, scaling)
+
+        # parameters of movement
+        self.pos_y = 0
+        self.pos_x = 0 + 100
+        self.speed_y = 0
+        self.desired_rotation = 0
+        self.resulting_rotation = 0
+        self.jump_activated = False
+        self.max_up = -11
 
 
+        # self.bottom_edge - is bottom limit of movement for player
+        self.bottom_edge = game.window.get_height() - 30  # 770
+        self.gravity_constant = 1/2
+
+        # for preload image
+        self.how_many_frame = 4
+        
+        self.images_from_sprite = []
+        self.preload_images_from_sprite()
+
+        # for animation
+        self.character_frames = []
+        self.current_player_frame = 0
+        self.speed_of_animation = 1
+        self.program_counter_player_frame_animation = 0
+        self.is_the_player_dead = False
+        self.wing_move = False
+
+
+
+    def move_character(self, key_state):
+        '''
+        * key_state (bool) - output of the button
+        '''
+        if not(game.delta_time == 0):
+            self.set_counter = 8
+            self.x = 2.85 * 2
+            self.y = 1.05 * 2
+            self.power_jump = 1.5
+            self.jump = key_state
+
+            if self.jump_activated or self.jump: # if key SPACE is trig
+                if not self.jump_activated:
+                    self.speed_y = 0
+                self.jump_activated = True
+
+                if self.speed_y > self.max_up:
+                    self.speed_y -= 1 * self.power_jump
+                else:
+                    self.jump_activated = False
+                self.desired_rotation = 1
+
+            elif not self.jump_activated:       # not self.jump:
+                if self.speed_y < 12:
+                    self.speed_y += 1 * self.gravity_constant
+                self.desired_rotation = -1
+
+            #   setting a limit on the move
+            if self.pos_y <= self.bottom_edge or self.pos_y <= self.bottom_edge:   # < 770
+                self.pos_y += self.speed_y
+                if self.bottom_edge < self.pos_y:  # if > 770 then setup for 769
+                    self.pos_y = self.bottom_edge - 1
+
+
+            self.player_rotate(self.desired_rotation, self.power_jump * self.x, self.gravity_constant * self.y)
+            
+            if self.desired_rotation == 1:
+                self.wing_move = True
+            else:
+                self.wing_move = False
+
+    def drawn_character_(self):
+
+        self.character_frames.append(self.images_from_sprite[0])
+        current_player_frame = 0
+
+        angle = self.player_rotate(self.desired_rotation, self.power_jump*self.x, self.gravity_constant*self.y)
+
+        if True:
+            rotate_character = pygame.transform.rotate(self.character_frames[current_player_frame], angle)
+        else:
+            rotate_character = self.character_frames[current_player_frame]
+
+
+
+
+        # rotate_character = self.images_from_sprite[0]
+        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2), self.pos_y-(rotate_character.get_height()/2)))
+
+
+
+
+
+
+    def drawn_character(self):
+
+        self.player_frame_animation()
+
+        if False:
+            rotate_character = pygame.transform.rotate(
+                self.character_frames[current_player_frame], const.rotate)
+        else:
+            rotate_character = self.character_frames[self.current_player_frame]
+
+        # drwan character
+        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2),
+                    self.pos_y-(rotate_character.get_height()/2)))
+
+        # collision
+        rect_character = pygame.Rect(self.pos_x-rotate_character.get_width()/2,
+                                    self.pos_y - rotate_character.get_height()/2,
+                                    rotate_character.get_width(), rotate_character.get_height())
+        mask_character = pygame.mask.from_surface(rotate_character)
+
+        # if there is no collision
+        kill_player = False
+        color1 = (0, 255, 0)
+
+        for wall in obstacle.walls:
+            surf_wall = pygame.Surface((wall[2], wall[3])).convert_alpha()
+            mask_wall = pygame.mask.from_surface(surf_wall)
+            offset_x = wall[0] - rect_character[0]
+            offset_y = wall[1] - rect_character[1]
+
+            if mask_character.overlap(mask_wall, (offset_x, offset_y)):
+                # color for Box collision
+                color1 = (255, 0, 0)
+                kill_player = True
+
+        # Box for collision
+        pygame.draw.rect(game.window, color1, rect_character, 1)
+
+
+
+    def player_frame_animation(self):
+
+        self.program_counter_player_frame_animation += 1
+        if not(game.delta_time == 0):
+            if self.program_counter_player_frame_animation >= game.delta_time/self.speed_of_animation:
+                self.program_counter_player_frame_animation = 0
+                if not self.is_the_player_dead:
+                    if self.wing_move:
+                        self.current_player_frame += 1
+                    else:
+                        self.current_player_frame = 0
+
+                    if self.current_player_frame >= self.how_many_frame - 1:
+                        self.current_player_frame = 0
+                else:
+                    # the player is dead 3
+                    self.current_player_frame = 3
+
+    def player_death_sound_event(no_mute):
+        if no_mute:
+            global play_loop_kill_player_sound, kill_player
+
+            if play_loop_kill_player_sound and kill_player:
+                sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
+
+                effect = pygame.mixer.Sound(sound_list_tag[1])
+                effect.play()
+                play_loop_kill_player_sound = False
+            # refresh the sound of death
+            if not play_loop_kill_player_sound and not kill_player:
+                play_loop_kill_player_sound = True
+        else:
+            pass
+
+    def player_wing_sound_event(self, no_mute):
+        # global i
+        if no_mute:
+            if True:
+                sound_list_tag = ['music\\audio_wing.ogg']
+                effect = pygame.mixer.Sound(sound_list_tag[0])
+                effect.play()
+                # i+=1
+                # print("wing_sound: ",i)
+        else:
+            pass
+
+    def player_rotate(self, var, multip_1, multip_2):
+        max_rotate_plus = 25
+        max_rotate_minus = -45
+        # leveling = 1
+
+        if (var > 0):
+            if (self.resulting_rotation <= max_rotate_plus):
+                self.resulting_rotation += 1 * multip_1
+        elif (var < 0):
+            if (self.resulting_rotation >= max_rotate_minus):
+                self.resulting_rotation -= 1 * multip_2
+        else:
+            self.resulting_rotation = 0
+
+        return self.resulting_rotation
+
+    
+
+
+
+
+
+##########################################################################################
 # Preload game
 game = Game()
 game.name_of_log("My Gmae")
 
 # Preload obstacle
 obstacle = Obstacle(400, 100, r'imgs\pipe-green.png')
+
+# defining the reset key
+key_space = KeyFromKeyboard('SPACE', 2)
+
+# Preload player
+player = Player(r'imgs\flappy_sprite.png', 4, 'RED', 0.25)
 
 # Preload background layer 0
 background_layer_0 = Background()
@@ -627,6 +876,8 @@ key_pause = KeyFromKeyboard('P', 2)
 
 # defining the reset key
 key_resume = KeyFromKeyboard('R', 2)
+
+
 
 # ----------- TEST ------------------------
 
@@ -668,7 +919,7 @@ while game.running:
 
     # FPS statistics
     game.show_character_statistics('FPS')
-    
+
     # draw button mute
     button_mute.draw_button()
     game.logic_buton_mute()
@@ -680,6 +931,12 @@ while game.running:
     gameover_text.show_text(game.gameover)
     # show text resume
     resume_text.show_text(game.gameover)
+
+    ### TEST ###
+
+    player.move_character(key_space.key_return_trig())
+    player.drawn_character_()
+    print('x: {}, y: {}, speed: {}, {}'.format(player.pos_x, player.pos_y, player.speed_y, player.jump))
 
     # ---------------------------------------------------------
 

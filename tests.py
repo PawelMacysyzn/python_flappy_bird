@@ -1,3 +1,4 @@
+from pickle import FALSE
 import threading
 import pygame
 from pygame import mixer  # for import music
@@ -72,14 +73,28 @@ class Trig:
 
 
 class Game:
+    '''
+     # Creates a game # 
+     * initialize pygame
+     * initialize game clock
+     * configures the game window
+    '''
 
-    def __init__(self) -> None:
+    def __init__(self, windows_size_x=800, windows_size_y=800) -> None:
+        '''
+        * windows_size_x (int) - game screen width (default value: 800)
+        * windows_size_y (int) - game screen height (default value: 800)
+
+        '''
+
         # initialize pygame
         pygame.init()
         # initialize game clock
         self.clock = pygame.time.Clock()
-        # Set up the drawing window
-        self.window = pygame.display.set_mode(const.windows_size)
+
+        self.windows_size = (windows_size_x, windows_size_y)  # width X height
+        # configures the game window
+        self.window = pygame.display.set_mode(self.windows_size)
 
         # freezes the game
         self.pause = False
@@ -258,10 +273,11 @@ class Game:
             song_background.do_music(False)
 
 
-class Button:
-    """
-    Creates a button
-    """
+class Picture:
+    '''
+    # Conver sprite to list<Surface>
+    '''
+
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
         '''
         * sprite_location (str) - path of sprite
@@ -274,29 +290,28 @@ class Button:
         self.alfa_color = alfa_color
         self.scaling = scaling
 
-        self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
-        self.res_trig_0, self.res_trig_1, self.res_p_trig, self.res_counter_trig = None, None, None, 0
-
         self.current_state = 1
-        self.images_from_sprite = []
+        self.list_of_images = self.preload_images_from_sprite()
 
-        self.preload_images_from_sprite()
-
-    def preload_images_from_sprite(self):
-        for which_frame in range(self.how_many_images):
-            self.images_from_sprite.append(self.do_sprite(
-                self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling))
+    def preload_images_from_sprite(self) -> list:
+        '''
+        return list of Surface
+        '''
+        return [self.do_sprite(self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling) for which_frame in range(self.how_many_images)]
 
     @staticmethod
-    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling):
+    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling) -> pygame.Surface:
         spride_sheet_image = pygame.image.load(image).convert_alpha()
 
+        set_colorkey = True
         if alfa_color.upper() == 'WHITE':
             alfa_color = (255, 255, 255)
         elif alfa_color.upper() == 'BLACK':
             alfa_color = (0, 0, 0)
         elif alfa_color.upper() == 'RED':
             alfa_color = (255, 0, 0)
+        elif alfa_color.upper() == 'FALSE':
+            set_colorkey = False
 
         width = spride_sheet_image.get_width()/how_many_images
         height = spride_sheet_image.get_height()
@@ -305,12 +320,36 @@ class Button:
         image.blit(spride_sheet_image, (0, 0),
                    ((which_frame*width), 0, width, height))
         image = pygame.transform.scale(image, (width*scaling, height*scaling))
-        image.set_colorkey(alfa_color)
+        if set_colorkey:
+            image.set_colorkey(alfa_color)
         return image
+
+
+class Button(Picture):
+    """
+    # Creates a button
+    """
+
+    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+        '''
+        * sprite_location (str) - path of sprite
+        * how_many_images (int) - how many images in sprite
+        * alfa_color (str) - base color
+        * scaling (float or int) - scaling by this value
+        '''
+
+        self.trig_0, self.trig_1, self.p_trig, self.counter_trig = None, None, None, 0
+        self.res_trig_0, self.res_trig_1, self.res_p_trig, self.res_counter_trig = None, None, None, 0
+
+        self.current_state = 1
+        self.how_many_images = how_many_images
+        self.images = Picture(
+            sprite_location, how_many_images, alfa_color, scaling)
+
 
     def draw_button(self):
 
-        self.button_surf = self.images_from_sprite[self.current_state]
+        self.button_surf = self.images.list_of_images[self.current_state]
 
         # button position
         pos_x = game.window.get_width() - self.button_surf.get_width()
@@ -407,7 +446,7 @@ class Background:
             game.window.fill(self.color_background)
 
     def moving_background(self, speed):
-        global delta_time
+
         # if there is a pause, the fast tempo is zero
         if game.delta_time == 0 or game.pause or game.gameover:
             speed = 0
@@ -621,10 +660,11 @@ class Obstacle:
         pass
 
 
-class Player(Button):
+class Player(Picture):
     '''
     Create new player
     '''
+
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
         '''
         * sprite_location (str) - path of sprite
@@ -632,8 +672,6 @@ class Player(Button):
         * alfa_color (str) - base color
         * scaling (float or int) - scaling by this value
         '''
-        super().__init__(sprite_location, how_many_images, alfa_color, scaling)
-
         # parameters of movement
         self.pos_y = 0
         self.pos_x = 0 + 100
@@ -643,26 +681,20 @@ class Player(Button):
         self.jump_activated = False
         self.max_up = -11
 
-
         # self.bottom_edge - is bottom limit of movement for player
         self.bottom_edge = game.window.get_height() - 30  # 770
         self.gravity_constant = 1/2
 
-        # for preload image
-        self.how_many_frame = 4
-        
-        self.images_from_sprite = []
-        self.preload_images_from_sprite()
+        # preload image from sprite
+        self.how_many_images = how_many_images
+        self.images = Picture(
+            sprite_location, how_many_images, alfa_color, scaling)
 
         # for animation
-        self.character_frames = []
         self.current_player_frame = 0
-        self.speed_of_animation = 1
+        self.speed_of_animation = 10 / 5  # 5 is demanded speed
         self.program_counter_player_frame_animation = 0
         self.is_the_player_dead = False
-        self.wing_move = False
-
-
 
     def move_character(self, key_state):
         '''
@@ -673,9 +705,8 @@ class Player(Button):
             self.x = 2.85 * 2
             self.y = 1.05 * 2
             self.power_jump = 1.5
-            self.jump = key_state
 
-            if self.jump_activated or self.jump: # if key SPACE is trig
+            if self.jump_activated or key_state:  # if key SPACE is trig
                 if not self.jump_activated:
                     self.speed_y = 0
                 self.jump_activated = True
@@ -697,36 +728,27 @@ class Player(Button):
                 if self.bottom_edge < self.pos_y:  # if > 770 then setup for 769
                     self.pos_y = self.bottom_edge - 1
 
-
-            self.player_rotate(self.desired_rotation, self.power_jump * self.x, self.gravity_constant * self.y)
-            
-            if self.desired_rotation == 1:
-                self.wing_move = True
-            else:
-                self.wing_move = False
-
     def drawn_character_(self):
+        '''
+        * draws a character
+        * rotate character
+        '''
 
-        self.character_frames.append(self.images_from_sprite[0])
-        current_player_frame = 0
+        current_player_frame = self.player_frame_animation()
 
-        angle = self.player_rotate(self.desired_rotation, self.power_jump*self.x, self.gravity_constant*self.y)
+        angle = self.player_rotate(
+            self.desired_rotation, self.power_jump*self.x, self.gravity_constant*self.y)
 
         if True:
-            rotate_character = pygame.transform.rotate(self.character_frames[current_player_frame], angle)
+            rotate_character = pygame.transform.rotate(
+                self.images.list_of_images[current_player_frame], angle)
+            alfa_colo_red = (255, 0, 0)
+            rotate_character.set_colorkey(alfa_colo_red)
         else:
-            rotate_character = self.character_frames[current_player_frame]
+            rotate_character = self.images.list_of_images[current_player_frame]
 
-
-
-
-        # rotate_character = self.images_from_sprite[0]
-        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2), self.pos_y-(rotate_character.get_height()/2)))
-
-
-
-
-
+        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2),
+                         self.pos_y-(rotate_character.get_height()/2)))
 
     def drawn_character(self):
 
@@ -740,17 +762,17 @@ class Player(Button):
 
         # drwan character
         game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2),
-                    self.pos_y-(rotate_character.get_height()/2)))
+                                            self.pos_y-(rotate_character.get_height()/2)))
 
         # collision
         rect_character = pygame.Rect(self.pos_x-rotate_character.get_width()/2,
-                                    self.pos_y - rotate_character.get_height()/2,
-                                    rotate_character.get_width(), rotate_character.get_height())
+                                     self.pos_y - rotate_character.get_height()/2,
+                                     rotate_character.get_width(), rotate_character.get_height())
         mask_character = pygame.mask.from_surface(rotate_character)
 
         # if there is no collision
         kill_player = False
-        color1 = (0, 255, 0)
+        color = (0, 255, 0)
 
         for wall in obstacle.walls:
             surf_wall = pygame.Surface((wall[2], wall[3])).convert_alpha()
@@ -766,32 +788,38 @@ class Player(Button):
         # Box for collision
         pygame.draw.rect(game.window, color1, rect_character, 1)
 
-
-
     def player_frame_animation(self):
+        '''
 
-        self.program_counter_player_frame_animation += 1
+        '''
+
         if not(game.delta_time == 0):
+            self.program_counter_player_frame_animation += 1
             if self.program_counter_player_frame_animation >= game.delta_time/self.speed_of_animation:
                 self.program_counter_player_frame_animation = 0
+
                 if not self.is_the_player_dead:
-                    if self.wing_move:
+
+                    # wing support handling
+                    if self.jump_activated:
                         self.current_player_frame += 1
                     else:
                         self.current_player_frame = 0
 
-                    if self.current_player_frame >= self.how_many_frame - 1:
+                    if self.current_player_frame >= self.how_many_images - 1:
                         self.current_player_frame = 0
                 else:
-                    # the player is dead 3
+                    # last frame is dead player
                     self.current_player_frame = 3
+        return self.current_player_frame
 
     def player_death_sound_event(no_mute):
         if no_mute:
             global play_loop_kill_player_sound, kill_player
 
             if play_loop_kill_player_sound and kill_player:
-                sound_list_tag = ['music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
+                sound_list_tag = [
+                    'music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
 
                 effect = pygame.mixer.Sound(sound_list_tag[1])
                 effect.play()
@@ -814,26 +842,27 @@ class Player(Button):
         else:
             pass
 
-    def player_rotate(self, var, multip_1, multip_2):
+    def player_rotate(self, direction, rising_enhancement, fall_enhancement) -> int:
+        '''
+        # This method is responsible for player rotation 
+        * direction ( int )\n
+            * if 1 then player rising flies up
+            * if -1 then player rising flies down
+        * rising_enhancement (int or float)
+        * fall_enhancement (int or float)
+        '''
+
         max_rotate_plus = 25
         max_rotate_minus = -45
-        # leveling = 1
 
-        if (var > 0):
+        if (direction > 0 and game.delta_time):
             if (self.resulting_rotation <= max_rotate_plus):
-                self.resulting_rotation += 1 * multip_1
-        elif (var < 0):
+                self.resulting_rotation += 1 * rising_enhancement
+        elif (direction < 0 and game.delta_time):
             if (self.resulting_rotation >= max_rotate_minus):
-                self.resulting_rotation -= 1 * multip_2
-        else:
-            self.resulting_rotation = 0
+                self.resulting_rotation -= 1 * fall_enhancement
 
-        return self.resulting_rotation
-
-    
-
-
-
+        return int(self.resulting_rotation)
 
 
 ##########################################################################################
@@ -848,7 +877,9 @@ obstacle = Obstacle(400, 100, r'imgs\pipe-green.png')
 key_space = KeyFromKeyboard('SPACE', 2)
 
 # Preload player
-player = Player(r'imgs\flappy_sprite.png', 4, 'RED', 0.25)
+player = Player(r'imgs\flappy_sprite.png', 4, 'FALSE', 0.25)
+# player = Player(r'imgs\flappy.png', 1, 'RED', 0.25)
+
 
 # Preload background layer 0
 background_layer_0 = Background()
@@ -878,14 +909,13 @@ key_pause = KeyFromKeyboard('P', 2)
 key_resume = KeyFromKeyboard('R', 2)
 
 
-
 # ----------- TEST ------------------------
 
 # defining the gameover key
 key_test_gameover = KeyFromKeyboard('G', 2)
 
-# defining rhe test key for Trig class
-key_test_for_Trig_class = Trig()
+# # defining rhe test key for Trig class
+# key_test_for_Trig_class = Trig()
 
 # ------------------------------------------
 
@@ -936,7 +966,9 @@ while game.running:
 
     player.move_character(key_space.key_return_trig())
     player.drawn_character_()
-    print('x: {}, y: {}, speed: {}, {}'.format(player.pos_x, player.pos_y, player.speed_y, player.jump))
+
+    # print('x: {}, y: {}, speed: {}, {}'.format(
+    #     player.pos_x, player.pos_y, player.speed_y, player.jump))
 
     # ---------------------------------------------------------
 

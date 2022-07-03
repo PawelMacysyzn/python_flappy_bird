@@ -1,20 +1,30 @@
-from pickle import FALSE
 import threading
 import pygame
 from pygame import mixer  # for import music
 from random import randint  # for generate walls
 import const
+from typing import Dict, List
 
 
 class Trig:
+    '''
+    # class Trig
+    Is used to store and return the current state of an object,
+    includes methods to trigger it
+    * return_curent_state
+    * return_trig
+    * reset
+    '''
+
     def __init__(self) -> None:
         self.__trig_on, self.__p_trig_on, self.__counter_trig_on = None, None, 0
         self.__trig_off, self.__p_trig_off, self.__counter_trig_off = None, None, 0
         self.__pulse = None
         self.__curent_state = 0
-        pass
 
-    def return_curent_state(self, event, how_many_state):
+        self.__condition = None
+
+    def return_curent_state(self, event: bool, how_many_state: int) -> bool:
         if self.return_trig(event):
             self.__curent_state += 1
 
@@ -22,7 +32,7 @@ class Trig:
             self.__curent_state = 0
         return bool(self.__curent_state)
 
-    def return_trig(self, event):
+    def return_trig(self, event: bool) -> bool:
         # ----- for test ------
         show_statistics = False
         # ---------It IS ONLY PERFORMED ONCE------------
@@ -68,8 +78,14 @@ class Trig:
         # -----------------------------
         return self.__pulse
 
+    def save_the_condition(self, event: bool) -> bool:
+        if event:
+            self.__condition = True
+        return self.__condition
+
     def reset(self):
         self.__curent_state = 0
+        self.__condition = False
 
 
 class Game:
@@ -241,7 +257,8 @@ class Game:
 
         # test gameover key ! to delete !
         if not self.pause:
-            self.gameover = key_test_gameover.return_curent_state()
+            self.gameover = key_test_gameover.return_curent_state(
+            ) or player.outside_player_is_kill_and_game_over
 
         # resume key
         self.resume = key_resume.key_return_trig()
@@ -275,7 +292,7 @@ class Game:
 
 class Picture:
     '''
-    # Conver sprite to list<Surface>
+    # Convert sprite to list<Surface>
     '''
 
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
@@ -313,7 +330,7 @@ class Picture:
         elif alfa_color.upper() == 'FALSE':
             set_colorkey = False
 
-        width = spride_sheet_image.get_width()/how_many_images
+        width = spride_sheet_image.get_width() / how_many_images
         height = spride_sheet_image.get_height()
 
         image = pygame.Surface((width, height)).convert_alpha()
@@ -345,7 +362,6 @@ class Button(Picture):
         self.how_many_images = how_many_images
         self.images = Picture(
             sprite_location, how_many_images, alfa_color, scaling)
-
 
     def draw_button(self):
 
@@ -662,7 +678,11 @@ class Obstacle:
 
 class Player(Picture):
     '''
-    Create new player
+    # Create new player
+    For correct operation, the methods must be called in a specific order:
+        * move_character
+        * drawn_character
+        * event_character
     '''
 
     def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
@@ -672,38 +692,63 @@ class Player(Picture):
         * alfa_color (str) - base color
         * scaling (float or int) - scaling by this value
         '''
-        # parameters of movement
+
+        # Preload image from sprite
+        self.how_many_images = how_many_images
+
+        #  uses the class Picture to load photos
+        self.player_list_of_images = Picture(
+            sprite_location, how_many_images, alfa_color, scaling).list_of_images
+
+        # Creating a dictionary containing angle as key and list of rotated images as value
+        self.max_rotate_plus = 35
+        self.max_rotate_minus = -45
+        self.angle_step = 2
+
+        self.dictionary_of_player_images_and_angles = self.dictionary_with_rotated_Surfaces(
+            self.player_list_of_images, how_many_images, self.max_rotate_plus, self.max_rotate_minus, self.angle_step)
+
+        # For game handling
+        self.player_is_dead = False
+        # uses the trig class to  save the state
+        self.player_wait_for_game_over = Trig()
+        self.outside_player_is_kill_and_game_over = False
+
+        # Parameters of movement
         self.pos_y = 0
         self.pos_x = 0 + 100
         self.speed_y = 0
         self.desired_rotation = 0
         self.resulting_rotation = 0
         self.jump_activated = False
-        self.max_up = -11
+        self.max_up = -10  # how high the figure will jump
 
         # self.bottom_edge - is bottom limit of movement for player
         self.bottom_edge = game.window.get_height() - 30  # 770
         self.gravity_constant = 1/2
 
-        # preload image from sprite
-        self.how_many_images = how_many_images
-        self.images = Picture(
-            sprite_location, how_many_images, alfa_color, scaling)
-
-        # for animation
+        # For animation
         self.current_player_frame = 0
         self.speed_of_animation = 10 / 5  # 5 is demanded speed
         self.program_counter_player_frame_animation = 0
-        self.is_the_player_dead = False
 
-    def move_character(self, key_state):
+        self.player_image = None
+
+        # For sounds effect
+        self.flip = False
+        self.once_death_sound_event = Trig()  # uses the trig class to get a wink
+
+    def move_character(self, key_state) -> None:
         '''
         * key_state (bool) - output of the button
         '''
+        # for sounds effect
+        self.flip = key_state
+
         if not(game.delta_time == 0):
             self.set_counter = 8
-            self.x = 2.85 * 2
-            self.y = 1.05 * 2
+            self.x_enhancement = 2.85 * 2
+            self.y_enhancement = 1.05 * 2
             self.power_jump = 1.5
 
             if self.jump_activated or key_state:  # if key SPACE is trig
@@ -728,80 +773,143 @@ class Player(Picture):
                 if self.bottom_edge < self.pos_y:  # if > 770 then setup for 769
                     self.pos_y = self.bottom_edge - 1
 
-    def drawn_character_(self):
+    def drawn_character(self, rotate: bool = True):
         '''
-        * draws a character
-        * rotate character
+        # Draws a character and rotate character\n
+        * rotate (bool) - turns rooting features on and off, if True player rotate
         '''
 
-        current_player_frame = self.player_frame_animation()
+        self.current_player_frame = self.player_frame_animation()
 
-        angle = self.player_rotate(
-            self.desired_rotation, self.power_jump*self.x, self.gravity_constant*self.y)
+        angle = self.player_rotate(self.desired_rotation, self.power_jump *
+                                   self.x_enhancement, self.gravity_constant*self.y_enhancement)
 
-        if True:
-            rotate_character = pygame.transform.rotate(
-                self.images.list_of_images[current_player_frame], angle)
-            alfa_colo_red = (255, 0, 0)
-            rotate_character.set_colorkey(alfa_colo_red)
+        simplified_angle = self.angle_formatting_plug(
+            angle, self.max_rotate_minus, self.max_rotate_plus, self.angle_step)
+
+        if rotate:
+            self.player_image = self.dictionary_of_player_images_and_angles[
+                simplified_angle][self.current_player_frame]
+
         else:
-            rotate_character = self.images.list_of_images[current_player_frame]
+            self.player_image = self.dictionary_of_player_images_and_angles[
+                0][self.current_player_frame]
 
-        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2),
-                         self.pos_y-(rotate_character.get_height()/2)))
+        game.window.blit(self.player_image, (self.pos_x-(self.player_image.get_width()/2),
+                         self.pos_y-(self.player_image.get_height()/2)))
 
-    def drawn_character(self):
+    def event_character(self, God_mode: bool = False, box_collision: bool = False, mute_wing_sound: bool = False, mute_death_sound: bool = False, color_box: str = 'RED') -> None:
+        '''
+        # Event handling \n
 
-        self.player_frame_animation()
+        Optional:
+        * God_mode (bool) - if True player is immortal  \n
 
-        if False:
-            rotate_character = pygame.transform.rotate(
-                self.character_frames[current_player_frame], const.rotate)
-        else:
-            rotate_character = self.character_frames[self.current_player_frame]
+        * box_collision (bool) - if True draws the collision box
+        * mute_wing_sound (bool) - if True sound of the wings is muted
+        * mute_death_sound (bool) - if True sound of the player death is muted
+        * color_box (str)
+        '''
 
-        # drwan character
-        game.window.blit(rotate_character, (self.pos_x-(rotate_character.get_width()/2),
-                                            self.pos_y-(rotate_character.get_height()/2)))
+        # Player_game_over #
+        self.player_game_over(God_mode)
 
-        # collision
-        rect_character = pygame.Rect(self.pos_x-rotate_character.get_width()/2,
-                                     self.pos_y - rotate_character.get_height()/2,
-                                     rotate_character.get_width(), rotate_character.get_height())
-        mask_character = pygame.mask.from_surface(rotate_character)
+        # Box collision #
+        self.player_draw_box_collision(box_collision, color_box)
 
-        # if there is no collision
-        kill_player = False
-        color = (0, 255, 0)
+        # Death sound #
+        self.player_sound_event([r'music\no_tak_srednio.ogg', r'music\uuu.ogg'],
+                                self.once_death_sound_event.return_trig(self.player_is_dead), mute_death_sound, 1)
 
+        # Wings sound #
+        self.player_sound_event(
+            [r'music\audio_wing.ogg'], self.flip, mute_wing_sound, 0)
+
+    def player_collision(self, surface_player: pygame.Surface) -> bool:
+        '''
+        # Player collision return <bool>
+        * surface_player (Surface)
+        '''
+
+        self.rect_character = pygame.Rect(self.pos_x - surface_player.get_width()/2,
+                                          self.pos_y - surface_player.get_height()/2,
+                                          surface_player.get_width(), surface_player.get_height())
+
+        mask_character = pygame.mask.from_surface(surface_player)
+
+        self.player_is_dead = False
         for wall in obstacle.walls:
             surf_wall = pygame.Surface((wall[2], wall[3])).convert_alpha()
             mask_wall = pygame.mask.from_surface(surf_wall)
-            offset_x = wall[0] - rect_character[0]
-            offset_y = wall[1] - rect_character[1]
+            self.offset_x = int(wall[0]) - int(self.rect_character[0])
+            self.offset_y = int(wall[1]) - int(self.rect_character[1])
 
-            if mask_character.overlap(mask_wall, (offset_x, offset_y)):
-                # color for Box collision
-                color1 = (255, 0, 0)
-                kill_player = True
+            if mask_character.overlap(mask_wall, (self.offset_x, self.offset_y)):
+                self.player_is_dead = True
 
-        # Box for collision
-        pygame.draw.rect(game.window, color1, rect_character, 1)
+        return self.player_is_dead
 
-    def player_frame_animation(self):
+    def player_game_over(self, God_mode: bool) -> None:
+
+        self.player_is_dead = self.player_collision(self.player_image)
+
+        # it would be worth taking a look here, because sometimes the player dies and the game does not stop, to do later
+        self.player_wait_for_game_over.save_the_condition(self.player_is_dead)
+
+        if not God_mode:
+            if self.player_is_dead:
+                self.current_player_frame = 3
+            # there #
+            self.outside_player_is_kill_and_game_over = self.player_wait_for_game_over.save_the_condition(
+                self.player_is_dead)
+            #########
+        else:
+            self.outside_player_is_kill_and_game_over = False
+        # there #
+        if game.resume:
+            self.player_wait_for_game_over.reset()
+        #########
+        pass
+
+    def player_draw_box_collision(self, box_collision, color_box) -> None:
         '''
+        * box_collision (bool) - if True draws the collision box 
+        * color_box (str)
+        '''
+        if not box_collision:
+            return 0
 
+        if color_box.upper() == 'WHITE':
+            color_box = (255, 255, 255)
+        elif color_box.upper() == 'BLACK':
+            color_box = (0, 0, 0)
+        elif color_box.upper() == 'RED':
+            color_box = (255, 0, 0)
+        elif color_box.upper() == 'GREAN':
+            color_box = (255, 0, 0)
+
+        if self.player_is_dead:
+            pygame.draw.rect(game.window, color_box, self.rect_character, 1)
+        else:  # (124,252,0) 'GREAN'
+            pygame.draw.rect(game.window, (0, 255, 0), self.rect_character, 1)
+
+    def player_frame_animation(self) -> int:
+        '''
+        # Player frame animation
+        * return returns each successive frame, creating an animation
         '''
 
         if not(game.delta_time == 0):
+
             self.program_counter_player_frame_animation += 1
+
             if self.program_counter_player_frame_animation >= game.delta_time/self.speed_of_animation:
                 self.program_counter_player_frame_animation = 0
 
-                if not self.is_the_player_dead:
+                if not self.player_is_dead:
 
                     # wing support handling
-                    if self.jump_activated:
+                    if self.jump_activated or self.speed_y < 0:
                         self.current_player_frame += 1
                     else:
                         self.current_player_frame = 0
@@ -810,62 +918,102 @@ class Player(Picture):
                         self.current_player_frame = 0
                 else:
                     # last frame is dead player
-                    self.current_player_frame = 3
+                    self.current_player_frame = self.how_many_images - 1
+
         return self.current_player_frame
 
-    def player_death_sound_event(no_mute):
-        if no_mute:
-            global play_loop_kill_player_sound, kill_player
+    def player_death_sound_event(self, trigger: bool, mute: bool = False) -> None:
 
-            if play_loop_kill_player_sound and kill_player:
+        if not mute:
+            if trigger:
+                print("UUU")
                 sound_list_tag = [
-                    'music\\no_tak_srednio.ogg', 'music\\uuu.ogg']
-
+                    r'music\no_tak_srednio.ogg', r'music\uuu.ogg']
                 effect = pygame.mixer.Sound(sound_list_tag[1])
                 effect.play()
-                play_loop_kill_player_sound = False
-            # refresh the sound of death
-            if not play_loop_kill_player_sound and not kill_player:
-                play_loop_kill_player_sound = True
-        else:
-            pass
 
-    def player_wing_sound_event(self, no_mute):
-        # global i
-        if no_mute:
-            if True:
-                sound_list_tag = ['music\\audio_wing.ogg']
-                effect = pygame.mixer.Sound(sound_list_tag[0])
-                effect.play()
-                # i+=1
-                # print("wing_sound: ",i)
-        else:
-            pass
+    def player_sound_event(self, list_of_ogg: List[str], trigger: bool, mute: bool = False, which_sound: int = 0) -> None:
+        '''
+        # The method allows you to play the sound from the *.ogg list \n
+
+            * list_of_ogg (list<str>)  -  <str> as the path to the *.ogg file
+            * trigger (boll)           -  an event that allows you to generate sound \n
+            Optional: \n
+            * mute (boll)              - if True is muted
+            * which_sound (int)        - select a sound from the list
+
+        '''
+        # To do (put it in a better place)  #
+        if not (game.pause or game.gameover):
+            #####################################
+            if not mute:
+                if trigger:
+                    effect = pygame.mixer.Sound(list_of_ogg[which_sound])
+                    effect.play()
 
     def player_rotate(self, direction, rising_enhancement, fall_enhancement) -> int:
         '''
-        # This method is responsible for player rotation 
-        * direction ( int )\n
+        # This method is responsible for player rotation \n
+        * direction ( int )
             * if 1 then player rising flies up
             * if -1 then player rising flies down
         * rising_enhancement (int or float)
         * fall_enhancement (int or float)
         '''
 
-        max_rotate_plus = 25
-        max_rotate_minus = -45
-
         if (direction > 0 and game.delta_time):
-            if (self.resulting_rotation <= max_rotate_plus):
+            if (self.resulting_rotation <= self.max_rotate_plus):
                 self.resulting_rotation += 1 * rising_enhancement
         elif (direction < 0 and game.delta_time):
-            if (self.resulting_rotation >= max_rotate_minus):
+            if (self.resulting_rotation >= self.max_rotate_minus):
                 self.resulting_rotation -= 1 * fall_enhancement
 
         return int(self.resulting_rotation)
 
+    @staticmethod
+    def dictionary_with_rotated_Surfaces(list_of_Surfaces: List[pygame.Surface], how_many_images: int, max_rotate_plus: int, max_rotate_minus: int, angle_step: int) -> Dict[int, List[pygame.Surface]]:
+        '''
+            # Return dict < angle : list of Surface rotated by angle> \n
 
-##########################################################################################
+            * list_of_Surfaces list <pygame.Surface>
+            * how_many_images (int)
+            * angle (int) - assigned angle
+            * max_rotate_plus  (abs(int))
+            * max_rotate_minus (int)
+            * angle_step (int)
+        '''
+
+        player_angle_and_state = dict()
+
+        for angle in range(max_rotate_minus, max_rotate_plus + angle_step, angle_step):
+
+            list = []
+
+            for current_frame in range(how_many_images):
+                list.append(pygame.transform.rotate(
+                    list_of_Surfaces[current_frame], angle))
+                list[current_frame].set_alpha(None)
+
+            player_angle_and_state[angle] = list
+
+        return player_angle_and_state
+
+    @staticmethod
+    def angle_formatting_plug(angle: int, max_rotate_minus: int, max_rotate_plus, angle_step: int) -> int:
+        for num in range(max_rotate_minus, max_rotate_plus + angle_step, angle_step):
+
+            if angle < max_rotate_minus:
+                return max_rotate_minus
+            if num >= max_rotate_plus:
+                return max_rotate_plus
+            if angle >= num - 1 and angle < num + 1:
+                return num
+
+###############################################################
+####################    PRELOAD GAME    #######################
+###############################################################
+
+
 # Preload game
 game = Game()
 game.name_of_log("My Gmae")
@@ -873,12 +1021,11 @@ game.name_of_log("My Gmae")
 # Preload obstacle
 obstacle = Obstacle(400, 100, r'imgs\pipe-green.png')
 
-# defining the reset key
+# Defining the space key
 key_space = KeyFromKeyboard('SPACE', 2)
 
 # Preload player
-player = Player(r'imgs\flappy_sprite.png', 4, 'FALSE', 0.25)
-# player = Player(r'imgs\flappy.png', 1, 'RED', 0.25)
+player = Player(r'imgs\flappy_sprite.png', 4, 'RED', 0.25)
 
 
 # Preload background layer 0
@@ -902,20 +1049,17 @@ gameover_text = GameTexts(image_game_texts[1], 2/3, (25, -200))
 resume_text = GameTexts(image_game_texts[2], 2/3, (25, 45))
 # --------------------------------------------------------
 
-# defining the pause key
+# Defining the pause key
 key_pause = KeyFromKeyboard('P', 2)
 
-# defining the reset key
+# Defining the reset key
 key_resume = KeyFromKeyboard('R', 2)
 
 
-# ----------- TEST ------------------------
+# ------------- FOR TEST -------------------
 
-# defining the gameover key
+# Defining the gameover key
 key_test_gameover = KeyFromKeyboard('G', 2)
-
-# # defining rhe test key for Trig class
-# key_test_for_Trig_class = Trig()
 
 # ------------------------------------------
 
@@ -964,20 +1108,15 @@ while game.running:
 
     ### TEST ###
 
+    # do not change the calls sequence of player's methods
     player.move_character(key_space.key_return_trig())
-    player.drawn_character_()
-
-    # print('x: {}, y: {}, speed: {}, {}'.format(
-    #     player.pos_x, player.pos_y, player.speed_y, player.jump))
+    player.drawn_character()
+    player.event_character(False, True)
 
     # ---------------------------------------------------------
 
-    # make screenshot after 0.5 sec
-    # screenshot_fun(0.5)
     # Update the display
     pygame.display.flip()
-    # how many times the program has been run
-    # program_counter += 1
 
     # to delete
     # pygame.time.delay(1)

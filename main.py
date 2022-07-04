@@ -190,7 +190,7 @@ class Game:
                     str("{:.1f}".format(pos_y)), 1, color_font)
                 label_5 = font.render("R:", 1, color_font)
                 label_6 = font.render(
-                    str("{:.1f}".format(const.rotate)), 1, color_font)
+                    str("{:.1f}".format(1)), 1, color_font)
                 label_9 = font.render("speed_y:", 1, color_font)
                 label_10 = font.render(
                     str("{:.1f}".format(speed_y)), 1, color_font)
@@ -202,15 +202,15 @@ class Game:
                 position_x += next_width
                 # next stat X
                 self.window.blit(
-                    label_1, (const.windows_size[0] - position_x, position_y))
+                    label_1, (self.windows_size[0] - position_x, position_y))
                 self.window.blit(
-                    label_2, (const.windows_size[0] - position_x + next_width_1, position_y))
+                    label_2, (self.windows_size[0] - position_x + next_width_1, position_y))
                 # next stat Y
                 position_x -= next_width
                 self.window.blit(
-                    label_3, (const.windows_size[0] - position_x, position_y))
+                    label_3, (self.windows_size[0] - position_x, position_y))
                 self.window.blit(
-                    label_4, (const.windows_size[0] - position_x + next_width_1, position_y))
+                    label_4, (self.windows_size[0] - position_x + next_width_1, position_y))
 
                 # NEXT LINE
                 position_y += 50
@@ -218,9 +218,9 @@ class Game:
                 # next line R
                 position_x += next_width
                 self.window.blit(
-                    label_5, (const.windows_size[0] - position_x, position_y))
+                    label_5, (self.windows_size[0] - position_x, position_y))
                 self.window.blit(
-                    label_6, (const.windows_size[0] - position_x + next_width_1, position_y))
+                    label_6, (self.windows_size[0] - position_x + next_width_1, position_y))
 
                 # NEXT LINE
                 position_y += 50
@@ -228,9 +228,9 @@ class Game:
                 # next stat V
                 # next stat speed_y
                 self.window.blit(
-                    label_9, (const.windows_size[0] - position_x, position_y))
+                    label_9, (self.windows_size[0] - position_x, position_y))
                 self.window.blit(
-                    label_10, (const.windows_size[0] - position_x + next_width_1 + 75, position_y))
+                    label_10, (self.windows_size[0] - position_x + next_width_1 + 75, position_y))
 
                 # NEXT LINE
                 position_y += 50
@@ -238,9 +238,9 @@ class Game:
                 # next stat counter_jump
                 position_x += next_width
                 self.window.blit(
-                    label_11, (const.windows_size[0] - position_x + 100, position_y))
+                    label_11, (self.windows_size[0] - position_x + 100, position_y))
                 self.window.blit(
-                    label_12, (const.windows_size[0] - position_x + next_width_1 + 225, position_y))
+                    label_12, (self.windows_size[0] - position_x + next_width_1 + 225, position_y))
 
     def show_character_score(self, character_score: int) -> None:
 

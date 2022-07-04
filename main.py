@@ -2,7 +2,6 @@ import threading
 import pygame
 from pygame import mixer  # for import music
 from random import randint  # for generate walls
-import const
 from typing import Dict, List
 
 
@@ -179,9 +178,9 @@ class Game:
 
             position_x -= next_width
             self.window.blit(
-                label_7, (const.windows_size[0] - position_x - 15, position_y))
+                label_7, (self.windows_size[0] - position_x - 15, position_y))
             self.window.blit(
-                label_8, (const.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
+                label_8, (self.windows_size[0] - position_x + label_7.get_width() - 10, position_y))
 
             if not what == 2:
                 label_1 = font.render("X:", 1, color_font)
@@ -641,13 +640,25 @@ class Obstacle:
     Obstacle - is responsible for generating the obstacle
     '''
 
-    def __init__(self, gap, wall_speed, obstacle_image) -> None:
+    def __init__(self, gap: int, wall_speed: int, obstacle_image: str, corridor_range: int = 150, wall_width: int = 60, corridor_size: int = 250) -> None:
         '''
-        gap - sets the spacing between the walls \n
-        wall_speed - sets speed of moving walls \n
-        obstacle_image - location of the .png file \n
+        * gap (int) -               sets the spacing between another walls  \n
+        * wall_speed (int) -        sets speed of moving walls              \n
+        * obstacle_image (str) -    location of the .png file               \n
+        * obstacle_image (str) -    location of the .png file               \n
+        Optional:
+        * corridor_range (int) -    isthmus between the pipes               \n
+        * wall_width (int) -        pipes thickness                         \n
+        * corridor_size (int)                                               \n
+        '''
+        # PARAMETERS #   
+             
+        self.corridor_range = corridor_range    # isthmus between the pipes
+        self.wall_width = wall_width
+        self.corridor_size = corridor_size
 
-        '''
+        ##############
+
         self.walls = []  # adding new wall (up and down site)
         self.gap = gap
         self.wall_speed_x = wall_speed
@@ -657,16 +668,18 @@ class Obstacle:
         self.obstacle_image_up = pygame.transform.flip(
             self.obstacle_image_down, False, True)
 
-    def once_generate_walls(self):
-        position = randint(const.corridor_range[0], const.corridor_range[1])
+    def once_generate_walls(self) -> None:
+
+        position = randint(self.corridor_range,
+                           game.windows_size[1] - self.corridor_range)
         # upper wall - x position, y position, x size, y size
         self.walls.append(pygame.Rect(
-            const.windows_size[0], 0, const.wall_width, position - const.corridor_size/2))
+            game.windows_size[0], 0, self.wall_width, position - self.corridor_size/2))
         # lower wall - x position, y position, x size, y size
         self.walls.append(pygame.Rect(
-            const.windows_size[0], position + const.corridor_size/2, const.wall_width, const.windows_size[1] - position))
+            game.windows_size[0], position + self.corridor_size/2, self.wall_width, game.windows_size[1] - position))
 
-    def generate_walls_with_gap(self):
+    def generate_walls_with_gap(self) -> None:
         # if amount of obstacles is 0 then
         if len(self.walls) == 0:
             self.once_generate_walls()
@@ -676,7 +689,7 @@ class Obstacle:
                 threading.Thread(
                     target=self.once_generate_walls(), args=[]).start()
 
-    def draws_obstacles(self):
+    def draws_obstacles(self) -> None:
         for wall in self.walls:
             # draw pipes shadows
             # pygame.draw.rect(window, const.color_of_walls, wall)
@@ -686,20 +699,19 @@ class Obstacle:
             else:
                 game.window.blit(self.obstacle_image_down, (wall[0], wall[1]))
 
-    def remove_walls(self):
+    def remove_walls(self) -> None:
         for wall in self.walls:
             if wall.right < 0:
                 self.walls.remove(wall)
 
-    def move_walls(self):
+    def move_walls(self) -> None:
         for wall in self.walls:
             if not(game.delta_time == 0):
                 wall.move_ip(-self.wall_speed_x /
                              game.delta_time, self.wall_speed_y)
 
-    def remove_all_items(self):
+    def remove_all_items(self) -> None:
         self.walls.clear()
-        pass
 
 
 class Player(Picture):

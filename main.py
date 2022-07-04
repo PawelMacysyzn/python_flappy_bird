@@ -589,16 +589,19 @@ class KeyFromKeyboard(Trig):
         self.key_deactivate = True
 
     def do_event(self):
-        if self.key_deactivate: return False
+        if self.key_deactivate:
+            return False
         key = pygame.key.get_pressed()
         return key[self.key]
 
     def return_curent_state(self):
-        if self.key_deactivate: return False
+        if self.key_deactivate:
+            return False
         return super().return_curent_state(self.do_event(), self.how_many_state)
 
     def key_return_trig(self):
-        if self.key_deactivate: return False
+        if self.key_deactivate:
+            return False
         return super().return_trig(self.do_event())
 
 
@@ -1273,7 +1276,6 @@ while game.running:
     gameover_text.show_text(game.gameover)
     # show text resume
     resume_text.show_text(game.gameover)
-
 
     # do not change the calls sequence of player's methods
     player.move_character(key_space.key_return_trig())

@@ -6,7 +6,8 @@
 </p>
 
 <!-- TABLE OF CONTENTS -->
-<details open="open">
+
+<!-- <details open="open">
   <summary>Table of Contents</summary>
   <ol>
     <li>
@@ -18,7 +19,7 @@
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
   </ol>
-</details>
+</details> -->
 
 <!-- ABOUT THE PROJECT -->
 
@@ -32,9 +33,9 @@
 - `git clone https://github.com/PawelMacysyzn/python_flappy_bird`
 - or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/python_flappy_bird.7z):
       <ul>
-        <li><a href="#built-with">first step</a></li>
-        <li><a href="#built-with">second step</a></li>
-        <li><a href="#built-with">third step</a></li>
+        <li><a href="#built-with">Extract the file: python_flappy_bird.7z</a></li>
+        <li><a href="#built-with">Run the file: main.exe</a></li>
+        <li><a href="#built-with">That's all :)</a></li>
       </ul>
 
 ## Game development over time

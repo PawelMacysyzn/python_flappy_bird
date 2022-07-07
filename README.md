@@ -33,7 +33,7 @@
 - `git clone https://github.com/PawelMacysyzn/python_flappy_bird`
 - or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/python_flappy_bird.7z):
       <ul>
-        <li><a>Extract the file: python_flappy_bird.7z</a></li>
+        <li><a>Extract the file: [python_flappy_bird.7z](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/python_flappy_bird.7z)</a></li>
         <li><a>Run the file: main.exe</a></li>
         <li><a>That's all :)</a></li>
       </ul>

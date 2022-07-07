@@ -1,5 +1,5 @@
 # Python Flappy Birdy
-## created by Paweł Macyszyn and Pawel Perenc
+## A basic Flappy Bird game made in Python
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -17,11 +17,11 @@
 </details>
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## Game development over time
 
 <!-- Image about -->
 <p align="center">
-    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/main_screen_of_the_game.png?raw=true" alt="Grafiki nie ma" width="500" height="500">
+    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/game_development_presentation.gif?raw=true" alt="Grafiki nie ma, ale będzie :)" width="500" height="500">
 </p>
 
 ### Built With

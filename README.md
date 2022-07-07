@@ -31,8 +31,9 @@
 ### Download this reposity:
 - `git clone https://github.com/PawelMacysyzn/python_flappy_bird`
 - or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/dist.7z):
--  xxx
--  xxx
+      <ul>
+        <li><a href="#built-with">xxx</a></li>
+      </ul>
 
 ## Game development over time
 <!-- Image about -->

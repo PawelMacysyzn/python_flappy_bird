@@ -2,7 +2,7 @@
 ## A basic Flappy Bird game made in Python
 <!-- Image about -->
 <p align="center">
-    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/screenshot.jpeg?raw=true" alt="Grafiki nie ma, ale będzie :)" width="250" height="250">
+    <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/2022-07-07%2002_06_32-MY%20GMAE.png?raw=true" alt="Grafiki nie ma, ale będzie :)" width="500" height="500">
 </p>
 
 <!-- TABLE OF CONTENTS -->
@@ -30,7 +30,7 @@
 - [pygame](https://www.pygame.org/news).  Install it with `pip install pygame`
 ### Download this reposity:
 - `git clone https://github.com/PawelMacysyzn/python_flappy_bird`
-- or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/dist.7z):
+- or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/python_flappy_bird.7z):
       <ul>
         <li><a href="#built-with">first step</a></li>
         <li><a href="#built-with">second step</a></li>

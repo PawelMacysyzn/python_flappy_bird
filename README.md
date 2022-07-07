@@ -32,7 +32,9 @@
 - `git clone https://github.com/PawelMacysyzn/python_flappy_bird`
 - or download as a [zip file directly](https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/dist.7z):
       <ul>
-        <li><a href="#built-with">xxx</a></li>
+        <li><a href="#built-with">first step</a></li>
+        <li><a href="#built-with">second step</a></li>
+        <li><a href="#built-with">third step</a></li>
       </ul>
 
 ## Game development over time

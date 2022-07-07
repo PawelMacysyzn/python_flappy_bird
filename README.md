@@ -57,5 +57,8 @@ Distributed under the MIT License.
 <!-- CONTACT -->
 ## Contact
 
-### <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" width=9% height=9%> Pawel Macyszyn 
+<!-- ### <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" width=9% height=9%> Pawel Macyszyn 
+### <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" width=9% height=9%> Pawel Perenc -->
+
+### [<img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" width=9% height=9%>](https://github.com/PawelMacysyzn) Pawel Macyszyn 
 ### <img src="https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555" width=9% height=9%> Pawel Perenc

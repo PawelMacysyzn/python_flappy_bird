@@ -19,6 +19,17 @@
 <!-- ABOUT THE PROJECT -->
 ## Game development over time
 
+
+## How to play 
+### Requirements:
+- Python 3.5 or higher
+- [pygame](https://www.pygame.org/news).  Install it with `pip install pygame`
+### Download this reposity 
+`git clone https://github.com/PawelMacysyzn/python_flappy_bird`
+or download as a zip file directly.
+https://github.com/PawelMacysyzn/python_flappy_bird/raw/main/dist/dist.7z
+
+
 <!-- Image about -->
 <p align="center">
     <img src="https://github.com/PawelMacysyzn/python_flappy_bird/blob/main/imgs/page_presentation/game_development_presentation.gif?raw=true" alt="Grafiki nie ma, ale będzie :)" width="500" height="500">

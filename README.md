@@ -48,7 +48,7 @@
 
 * [pygame](https://www.pygame.org/news)
 * [Python](https://www.python.org/)
-* [GIMP]  (https://www.gimp.org/)
+* [gimp]  (https://www.gimp.org/)
 
 <!-- LICENSE -->
 ## License

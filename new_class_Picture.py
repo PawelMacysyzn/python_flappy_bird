@@ -142,7 +142,7 @@ def main():
     ############################################
     ###        FOR Test CLASS Picture        ###
     ############################################
-    TIME_FOR_DISPLAYING = 5/10 #s
+    TIME_FOR_DISPLAYING = 5/10  # s
 
     pygame.init()
     window = pygame.display.set_mode((800, 800))
@@ -160,8 +160,6 @@ def main():
     image = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.jpg'
     letters2 = Picture(image, 9, 4, 'WHITE', 1/3)
 
-    
-
     while True:
         # event handle
         for event in pygame.event.get():
@@ -177,8 +175,8 @@ def main():
         Picture.test_show_background_color(window)
 
         # digits1.test_show_photos_animation(window)
-        digits1.test_show_vertically_side_by_side(window, 5, True)
-        
+        # digits1.test_show_vertically_side_by_side(window, 5, True)
+
         # letters1.test_show_photos_animation(window)
         # letters1.test_show_vertically_side_by_side(window, 5, True)
 

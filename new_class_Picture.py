@@ -14,7 +14,7 @@ class Picture:
         * sprite_location (str) - path of sprite
         * how_many_columns (int) - how many columns in sprite
         * how_many_rows (int) - how many rows in sprite
-        * alfa_color (str) - base color
+        * alfa_color (str) - base color from: ['WHITE', 'BLACK', 'RED', 'FALSE']
         * scaling (float or int) - scaling by this value
         '''
         self.sprite_location = sprite_location
@@ -43,7 +43,7 @@ class Picture:
         '''
         return list of Surface
         '''
-        return [self.do_sprite(self.sprite_location, self.how_many_columns, self.how_many_rows, which_frame, self.how_many_frames, self.alfa_color, self.scaling) for which_frame in range(self.how_many_frames)]
+        return [self.do_sprite(self.sprite_location, self.how_many_columns, self.how_many_rows, which_frame, self.alfa_color, self.scaling) for which_frame in range(self.how_many_frames)]
 
     def test_show_photos_animation(self, window: pygame.surface):
         '''
@@ -79,7 +79,22 @@ class Picture:
                 frame += 1
 
     @staticmethod
-    def do_sprite(image, how_many_columns, how_many_rows, which_frame, how_many_frames, alfa_color, scaling) -> pygame.Surface:
+    def test_show_background_color(window: pygame.surface):
+        '''
+        Show background color, important !!!
+        # ! Call first !
+
+        * window (pygame.surface) - indicate the plane on which the animation is to be displayed
+        '''
+
+        # Initialing RGB Color
+        color = (255, 0, 0)
+
+        window.fill(color)
+        pass
+
+    @staticmethod
+    def do_sprite(image, how_many_columns, how_many_rows, which_frame, alfa_color, scaling) -> pygame.Surface:
         spride_sheet_image = pygame.image.load(image).convert_alpha()
 
         set_colorkey = True
@@ -127,19 +142,25 @@ def main():
     ############################################
     ###        FOR Test CLASS Picture        ###
     ############################################
+    TIME_FOR_DISPLAYING = 5/10 #s
 
     pygame.init()
     window = pygame.display.set_mode((800, 800))
     pygame.display.set_caption("Fonts test")
 
+    image = r'imgs\digits\game-font-pixel-art-8bit-style-numbers.jpg'
+    digits1 = Picture(image, 10, 1, 'WHITE', 1)
 
-    image_path_digits = r'imgs\digits\game-font-pixel-art-8bit-style-numbers.jpg'
-    digits = Picture(image_path_digits, 10, 1, 'BLACK', 1)
+    image = r'imgs\letters\game-font-pixel-art-8bit-style-letters.jpg'
+    letters1 = Picture(image, 9, 3, 'WHITE', 1)
 
+    image = r'imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.jpg'
+    digits2 = Picture(image, 10, 1, 'WHITE', 1/3)
 
-    image_path_letters = r'imgs\letters\game-font-pixel-art-8bit-style-letters.jpg'
-    letters = Picture(image_path_letters, 9, 3, 'BLACK', 1)
+    image = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.jpg'
+    letters2 = Picture(image, 9, 4, 'WHITE', 1/3)
 
+    
 
     while True:
         # event handle
@@ -151,21 +172,28 @@ def main():
         ####################
         ##   CODE HERE    ##
         ####################
+        # TO ADD CANAL ALFA !!!
 
-        # show_animation(window, iter_digits)
-        # show_animation(window, iter_letters)
-        # show_vertical(window, digits.list_of_images, 10, 1)
-        # show_vertically_side_by_side(window, letters.list_of_images, 9, 3)
+        Picture.test_show_background_color(window)
 
-        # NEW #
+        # digits1.test_show_photos_animation(window)
+        digits1.test_show_vertically_side_by_side(window, 5, True)
+        
+        # letters1.test_show_photos_animation(window)
+        # letters1.test_show_vertically_side_by_side(window, 5, True)
 
-        # digits.test_show_photos_animation(window)
-        # letters.test_show_photos_animation(window)
-        # digits.test_show_vertically_side_by_side(window, 5, True)
-        letters.test_show_vertically_side_by_side(window, 5, True)
+        # digits2.test_show_photos_animation(window)
+        # digits2.test_show_vertically_side_by_side(window, 5, True)
+
+        # letters2.test_show_vertically_side_by_side(window, 5, True)
+        # letters2.test_show_photos_animation(window)
+
+        ####################
+        ##     UNTIL      ##
+        ####################
 
         # wait
-        time.sleep(0.5)
+        time.sleep(TIME_FOR_DISPLAYING)
 
         # Update the display
         pygame.display.flip()

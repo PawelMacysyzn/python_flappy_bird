@@ -1,12 +1,29 @@
 import pygame
 import time
 
+################### PARAMETERS ######################
+from parameters import GameParameters as GP
+from parameters import Color
+#####################################################
+
+
+class DataClassSprite:
+
+    SPRITE: str
+    HOW_MANY_COLUMNS: int
+    HOW_MANY_ROWS: int
+    ALFA_COLOR: tuple
+    SCALING: int
+
 
 class Picture:
     '''
     # Convert sprite to list<Surface>
+
     It also includes test methods:
-    * show_photos_animation(self, window: pygame.surface)
+    * test_show_photos_animation(self, window: pygame.surface)
+    * test_show_vertically_side_by_side(self, window: pygame.surface, space: int = 5, verbose: bool = False)
+    * test_show_background_color(window: pygame.surface)
     '''
 
     def __init__(self, sprite_location, how_many_columns, how_many_rows, alfa_color, scaling) -> None:
@@ -14,7 +31,7 @@ class Picture:
         * sprite_location (str) - path of sprite
         * how_many_columns (int) - how many columns in sprite
         * how_many_rows (int) - how many rows in sprite
-        * alfa_color (str) - base color from: ['WHITE', 'BLACK', 'RED', 'FALSE']
+        * alfa_color (str) - base color from: ['WHITE', 'BLACK', 'RED', 'FALSE', '']
         * scaling (float or int) - scaling by this value
         '''
         self.sprite_location = sprite_location
@@ -78,6 +95,18 @@ class Picture:
                             ((width + sbc) * row, height * column))
                 frame += 1
 
+    @classmethod
+    def init_from_dataclass(cls, spriteData: DataClassSprite = None) -> None:
+        '''
+        * spriteData (DataClassSprite) - DataClassSprite object
+        '''
+        return cls(
+            sprite_location=spriteData.SPRITE,
+            how_many_columns=spriteData.HOW_MANY_COLUMNS,
+            how_many_rows=spriteData.HOW_MANY_ROWS,
+            alfa_color=spriteData.ALFA_COLOR,
+            scaling=spriteData.SCALING)
+
     @staticmethod
     def test_show_background_color(window: pygame.surface):
         '''
@@ -88,41 +117,51 @@ class Picture:
         '''
 
         # Initialing RGB Color
-        color = (255, 0, 0)
+        color = Color.RED
 
         window.fill(color)
         pass
 
     @staticmethod
-    def do_sprite(image, how_many_columns, how_many_rows, which_frame, alfa_color, scaling) -> pygame.Surface:
-        spride_sheet_image = pygame.image.load(image).convert_alpha()
+    def do_sprite(image, how_many_columns, how_many_rows, which_frame, alpha_color, scaling) -> pygame.Surface:
 
-        set_colorkey = True
-        if alfa_color.upper() == 'WHITE':
-            alfa_color = (255, 255, 255)
-        elif alfa_color.upper() == 'BLACK':
-            alfa_color = (0, 0, 0)
-        elif alfa_color.upper() == 'RED':
-            alfa_color = (255, 0, 0)
-        elif alfa_color.upper() == 'FALSE':
-            set_colorkey = False
+        spride_sheet_image = pygame.image.load(image)
+
+        # everything besides int and tuple
+        if not(type(alpha_color) is (int) or type(alpha_color) is (tuple)):
+
+            if alpha_color.upper() == 'WHITE':
+                alpha_color = Color.WHITE
+            elif alpha_color.upper() == 'BLACK':
+                alpha_color = Color.BLACK
+            elif alpha_color.upper() == 'RED':
+                alpha_color = Color.RED
+            elif alpha_color.upper() == 'GREAN':
+                alpha_color = Color.GREAN
+            elif alpha_color.upper() == 'GREEN SCREEN':
+                alpha_color = Color.GREEN_SCREEN
+            elif alpha_color.upper() == ('FALSE'):
+                alpha_color = Color.ALPHA
+            elif alpha_color == (''):
+                alpha_color = Color.ALPHA
 
         width = spride_sheet_image.get_width() / how_many_columns
         height = spride_sheet_image.get_height() / how_many_rows
 
-        # retur current row
+        # retur current current_column, current_row
         current_column, current_row = Picture.get_current_row(
             which_frame, how_many_columns, how_many_rows)
 
-        image = pygame.Surface((width, height)).convert_alpha()
+        image = pygame.Surface((width, height))  # .convert_alpha()
 
         image.blit(spride_sheet_image, (0, 0),
                    ((current_column*width),  (current_row*height), width, height))
 
-        image = pygame.transform.scale(image, (width*scaling, height*scaling))
+        image = pygame.transform.scale(
+            image, (width*scaling, height*scaling))  # .convert_alpha()
 
-        if set_colorkey:
-            image.set_colorkey(alfa_color)
+        image.set_colorkey(alpha_color)
+
         return image
 
     @staticmethod
@@ -148,17 +187,16 @@ def main():
     window = pygame.display.set_mode((800, 800))
     pygame.display.set_caption("Fonts test")
 
-    image = r'imgs\digits\game-font-pixel-art-8bit-style-numbers.jpg'
-    digits1 = Picture(image, 10, 1, 'WHITE', 1)
+    # font_digits_one = Picture(GP.Fonts.Digits.FIRST_IMAGE, 10, 1, '', 3)  # OLD
+    font_digits_one = Picture.init_from_dataclass(
+        GP.Fonts_EXPANDED.FIRST_Digits)  # NEW ONE
 
-    image = r'imgs\letters\game-font-pixel-art-8bit-style-letters.jpg'
-    letters1 = Picture(image, 9, 3, 'WHITE', 1)
+    font_letters_one = Picture(GP.Fonts.Letters.FIRST_IMAGE, 9, 3, 'WHITE', 1)
 
-    image = r'imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.jpg'
-    digits2 = Picture(image, 10, 1, 'WHITE', 1/3)
+    font_digits_two = Picture(GP.Fonts.Digits.SECOND_IMAGE, 10, 1, '', 1/3)
 
-    image = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.jpg'
-    letters2 = Picture(image, 9, 4, 'WHITE', 1/3)
+    font_letters_two = Picture(
+        GP.Fonts.Letters.SECOND_IMAGE, 9, 4, 'WHITE', 1/3)
 
     while True:
         # event handle
@@ -174,17 +212,22 @@ def main():
 
         Picture.test_show_background_color(window)
 
-        # digits1.test_show_photos_animation(window)
-        # digits1.test_show_vertically_side_by_side(window, 5, True)
+        # font_digits_one.test_show_vertically_side_by_side(window, 5, True)
+        font_digits_one.test_show_photos_animation(window)
 
-        # letters1.test_show_photos_animation(window)
-        # letters1.test_show_vertically_side_by_side(window, 5, True)
+        # font_letters_one.test_show_vertically_side_by_side(window, 5, True)
+        # font_letters_one.test_show_photos_animation(window)
 
-        # digits2.test_show_photos_animation(window)
-        # digits2.test_show_vertically_side_by_side(window, 5, True)
+        # font_digits_two.test_show_vertically_side_by_side(window, 5, True)
+        # font_digits_two.test_show_photos_animation(window)
 
-        # letters2.test_show_vertically_side_by_side(window, 5, True)
-        # letters2.test_show_photos_animation(window)
+        # font_letters_two.test_show_vertically_side_by_side(window, 5, True)
+        # font_letters_two.test_show_photos_animation(window)
+
+        # image = pygame.image.load(GP.Fonts.Digits.FIRST_IMAGE).convert_alpha()
+        # rect = image.get_rect()
+        # print(rect)
+        # window.blit(image, (100,100))
 
         ####################
         ##     UNTIL      ##

@@ -6,6 +6,10 @@ from parameters import GameParameters as GP
 from parameters import Color
 #####################################################
 
+################# FOR TEST ##########################
+from module_Trig_and_Key import Trig, KeyFromKeyboard
+#####################################################
+
 
 class DataClassSprite:
 
@@ -44,6 +48,11 @@ class Picture:
         self.current_state = 1
         self.list_of_images = self.preload_images_from_sprite()
         self.i = 0
+        ######### TEST #########
+        self.key_ENTER = KeyFromKeyboard('ENTER')
+        self.execute_once = True
+        self.sprite = None
+        ########################
 
     def __next__(self):
         if self.i == len(self.list_of_images):
@@ -61,15 +70,6 @@ class Picture:
         return list of Surface
         '''
         return [self.do_sprite(self.sprite_location, self.how_many_columns, self.how_many_rows, which_frame, self.alfa_color, self.scaling) for which_frame in range(self.how_many_frames)]
-
-    def test_show_photos_animation(self, window: pygame.surface):
-        '''
-        Show animation of photos one by one
-
-        * window (pygame.surface) - indicate the plane on which the animation is to be displayed
-
-        '''
-        window.blit(next(self), (0, 0))
 
     def test_show_vertically_side_by_side(self, window: pygame.surface, space: int = 5, verbose: bool = False):
         '''
@@ -94,6 +94,62 @@ class Picture:
                 window.blit(self.list_of_images[frame],
                             ((width + sbc) * row, height * column))
                 frame += 1
+
+    def test_show_photos_animation(self, window: pygame.surface, scale: int = 1, time_for_displaying: int = 5/10, verbose: bool = True):
+        '''
+        Show animation of photos one by one
+
+        * window (pygame.surface) - indicate the plane on which the animation is to be displayed
+        * scale (int) - value 1 is default
+        * time_for_displaying (int) - time for displaying, by default 0,5 sec
+        * verbose (bool) - information about the width and height of the image
+        '''
+
+        scaled_surface, width, height = self.test_scale_the_image(scale)
+
+        if verbose:
+            print(f'{width} x {height}')
+
+        window.blit(scaled_surface, (0, 0))
+
+        # wait
+        time.sleep(time_for_displaying)
+
+    def test_press_enter_to_show_next_photo(self, window: pygame.surface, scale: int = 1, verbose: bool = True):
+        '''
+        Press enter to view the next photo
+
+        * window (pygame.surface) - indicate the plane on which the animation is to be displayed
+        * scale (int) - value 1 is default
+        * verbose (bool) - information about the width and height of the image        
+        '''
+
+        if (self.key_ENTER.key_return_trig() or self.execute_once):
+
+            self.execute_once = False
+
+            self.sprite, width, height = self.test_scale_the_image(scale)
+
+            if verbose:
+                print(f'{width} x {height}')
+
+        window.blit(self.sprite, (0, 0))
+
+    def test_scale_the_image(self, scale: int):
+        '''
+        Method returned scaled surface also do gives width and height of original picture 
+
+        * scale (int)
+        '''
+
+        scaled_surface = next(self)
+        width = scaled_surface.get_width()
+        height = scaled_surface.get_height()
+
+        scaled_surface = pygame.transform.scale(
+            scaled_surface, (width*scale, height*scale))
+
+        return scaled_surface, width, height
 
     @classmethod
     def init_from_dataclass(cls, spriteData: DataClassSprite = None) -> None:
@@ -175,28 +231,32 @@ class Picture:
                 column = frame - (how_many_columns * row)
                 return column - 1, row
 
+    ############################################
+    #####           Only for test (main)    ####
+    ############################################
+
 
 def main():
 
     ############################################
     ###        FOR Test CLASS Picture        ###
     ############################################
-    TIME_FOR_DISPLAYING = 5/10  # s
 
     pygame.init()
     window = pygame.display.set_mode((800, 800))
     pygame.display.set_caption("Fonts test")
 
-    # font_digits_one = Picture(GP.Fonts.Digits.FIRST_IMAGE, 10, 1, '', 3)  # OLD
     font_digits_one = Picture.init_from_dataclass(
-        GP.Fonts_EXPANDED.FIRST_Digits)  # NEW ONE
+        GP.Fonts_EXPANDED.FIRST_Digits)
 
-    font_letters_one = Picture(GP.Fonts.Letters.FIRST_IMAGE, 9, 3, 'WHITE', 1)
+    font_letters_one = Picture.init_from_dataclass(
+        GP.Fonts_EXPANDED.FIRST_Letters)
 
-    font_digits_two = Picture(GP.Fonts.Digits.SECOND_IMAGE, 10, 1, '', 1/3)
+    font_digits_two = Picture.init_from_dataclass(
+        GP.Fonts_EXPANDED.SECOND_Digits)
 
-    font_letters_two = Picture(
-        GP.Fonts.Letters.SECOND_IMAGE, 9, 4, 'WHITE', 1/3)
+    font_letters_two = Picture.init_from_dataclass(
+        GP.Fonts_EXPANDED.SECOND_Letters)
 
     while True:
         # event handle
@@ -207,34 +267,51 @@ def main():
 
         ####################
         ##   CODE HERE    ##
+
         ####################
         # TO ADD CANAL ALFA !!!
 
         Picture.test_show_background_color(window)
 
-        # font_digits_one.test_show_vertically_side_by_side(window, 5, True)
-        font_digits_one.test_show_photos_animation(window)
+        ####################################################################
+        # • Checked: imgs\digits\game-font-pixel-art-8bit-style-numbers.png
+        if False:  # showing all image of:                                                  imgs\digits\game-font-pixel-art-8bit-style-numbers.png
+            font_digits_one.test_show_vertically_side_by_side(window, 5, True)
+        if False:  # showing continuous animation of:                                       imgs\digits\game-font-pixel-art-8bit-style-numbers.png
+            font_digits_one.test_show_photos_animation(window)
+        if False:  # displaying picture by picture after pressing enter:                     imgs\digits\game-font-pixel-art-8bit-style-numbers.png
+            font_digits_one.test_press_enter_to_show_next_photo(window, 3)
+        ####################################################################
 
-        # font_letters_one.test_show_vertically_side_by_side(window, 5, True)
-        # font_letters_one.test_show_photos_animation(window)
+        ####################################################################
+        # • Checked:  imgs\letters\game-font-pixel-art-8bit-style-letters.png
+        if False:  # showing all image of:                                              imgs\letters\game-font-pixel-art-8bit-style-letters.png
+            font_letters_one.test_show_vertically_side_by_side(window, 5, True)
+        if False:  # showing continuous animation of:                                   imgs\letters\game-font-pixel-art-8bit-style-letters.png
+            font_letters_one.test_show_photos_animation(window, 5)
+        if False:  # displaying picture by picture after pressing enter:                 imgs\letters\game-font-pixel-art-8bit-style-letters.png
+            font_letters_one.test_press_enter_to_show_next_photo(window, 3)
+        ####################################################################
 
-        # font_digits_two.test_show_vertically_side_by_side(window, 5, True)
-        # font_digits_two.test_show_photos_animation(window)
+        ####################################################################
+        # • In Progress:  imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.png
+        if False:  # showing all image of:                                            imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.png
+            font_digits_two.test_show_vertically_side_by_side(window, 5, True)
+        if False:  # displaying picture by picture after pressing enter:              imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.png
+            font_digits_two.test_press_enter_to_show_next_photo(window, 3)
+        ####################################################################
 
-        # font_letters_two.test_show_vertically_side_by_side(window, 5, True)
-        # font_letters_two.test_show_photos_animation(window)
-
-        # image = pygame.image.load(GP.Fonts.Digits.FIRST_IMAGE).convert_alpha()
-        # rect = image.get_rect()
-        # print(rect)
-        # window.blit(image, (100,100))
+        ####################################################################
+        # • In Progress:  imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.png
+        if False:  # showing all image of:                                           imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.png
+            font_letters_two.test_show_vertically_side_by_side(window, 5, True)
+        if True:  # displaying picture by picture after pressing enter:              imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.png
+            font_letters_two.test_press_enter_to_show_next_photo(window, 3)
+        ####################################################################
 
         ####################
         ##     UNTIL      ##
         ####################
-
-        # wait
-        time.sleep(TIME_FOR_DISPLAYING)
 
         # Update the display
         pygame.display.flip()

@@ -4,87 +4,14 @@ from pygame import mixer  # for import music
 from random import randint  # for generate walls
 from typing import Dict, List
 
+################### MODULES #########################
+from module_Picture import Picture
+from module_Trig_and_Key import Trig, KeyFromKeyboard
 
-class Trig:
-    '''
-    # class Trig
-    Is used to store and return the current state of an object,
-    includes methods to trigger it
-    * return_curent_state
-    * return_trig
-    * reset
-    '''
-
-    def __init__(self) -> None:
-        self.__trig_on, self.__p_trig_on, self.__counter_trig_on = None, None, 0
-        self.__trig_off, self.__p_trig_off, self.__counter_trig_off = None, None, 0
-        self.__pulse = None
-        self.__curent_state = 0
-
-        self.__condition = None
-
-    def return_curent_state(self, event: bool, how_many_state: int) -> bool:
-        if self.return_trig(event):
-            self.__curent_state += 1
-
-        if self.__curent_state > how_many_state - 1:
-            self.__curent_state = 0
-        return bool(self.__curent_state)
-
-    def return_trig(self, event: bool) -> bool:
-        # ----- for test ------
-        show_statistics = False
-        # ---------It IS ONLY PERFORMED ONCE------------
-        self.__pulse = False
-        # -----------pulse trig on----------------
-        if event:
-            # self.__trig_on_0 = True
-            if not self.__trig_on:
-                self.__trig_on = True
-                self.__p_trig_on = True
-            pass
-        else:
-            # self.__trig_on_0 = False
-            self.__trig_on = False
-            pass
-
-        if self.__p_trig_on:
-            if show_statistics:
-                self.__counter_trig_on += 1
-                print("return_trig_(on ): ", self.__counter_trig_on)
-
-            self.__pulse = True
-
-            self.__p_trig_on = False
-        # -----------pulse trig off----------------
-        if not event:
-            # self.__trig_off_0 = True
-            if not self.__trig_off:
-                self.__trig_off = True
-                self.__p_trig_off = True
-            pass
-        else:
-            # self.__trig_off_0 = False
-            self.__trig_off = False
-            pass
-
-        if self.__p_trig_off:
-            if show_statistics:
-                self.__counter_trig_off += 1
-                print("return_trig_(off): ", self.__counter_trig_off)
-            ### negative trig ###
-            self.__p_trig_off = False
-        # -----------------------------
-        return self.__pulse
-
-    def save_the_condition(self, event: bool) -> bool:
-        if event:
-            self.__condition = True
-        return self.__condition
-
-    def reset(self):
-        self.__curent_state = 0
-        self.__condition = False
+################### PARAMETERS ######################
+from parameters import GameParameters as GameParam
+from parameters import Color
+#####################################################
 
 
 class Game:
@@ -95,10 +22,13 @@ class Game:
      * configures the game window
     '''
 
-    def __init__(self, windows_size_x: int = 800, windows_size_y: int = 800) -> None:
+    def __init__(self,
+                 windows_size_x: int = GameParam.Windows.SIZE_X,
+                 windows_size_y: int = GameParam.Windows.SIZE_Y
+                 ) -> None:
         '''
-        * windows_size_x (int) - game screen width (default value: 800)
-        * windows_size_y (int) - game screen height (default value: 800)
+        * windows_size_x (int) - game screen width
+        * windows_size_y (int) - game screen height
 
         '''
 
@@ -113,7 +43,7 @@ class Game:
 
         #### PARAMETERS ####
 
-        self.framerate = 60
+        self.framerate = GameParam.FRAMERATE
 
         ####################
 
@@ -305,64 +235,12 @@ class Game:
             song_background.do_music(False)
 
 
-class Picture:
-    '''
-    # Convert sprite to list<Surface>
-    '''
-
-    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
-        '''
-        * sprite_location (str) - path of sprite
-        * how_many_images (int) - how many images in sprite
-        * alfa_color (str) - base color
-        * scaling (float or int) - scaling by this value
-        '''
-        self.sprite_location = sprite_location
-        self.how_many_images = how_many_images
-        self.alfa_color = alfa_color
-        self.scaling = scaling
-
-        self.current_state = 1
-        self.list_of_images = self.preload_images_from_sprite()
-
-    def preload_images_from_sprite(self) -> list:
-        '''
-        return list of Surface
-        '''
-        return [self.do_sprite(self.sprite_location, self.how_many_images, which_frame, self.alfa_color, self.scaling) for which_frame in range(self.how_many_images)]
-
-    @staticmethod
-    def do_sprite(image, how_many_images, which_frame, alfa_color, scaling) -> pygame.Surface:
-        spride_sheet_image = pygame.image.load(image).convert_alpha()
-
-        set_colorkey = True
-        if alfa_color.upper() == 'WHITE':
-            alfa_color = (255, 255, 255)
-        elif alfa_color.upper() == 'BLACK':
-            alfa_color = (0, 0, 0)
-        elif alfa_color.upper() == 'RED':
-            alfa_color = (255, 0, 0)
-        elif alfa_color.upper() == 'FALSE':
-            set_colorkey = False
-
-        width = spride_sheet_image.get_width() / how_many_images
-        height = spride_sheet_image.get_height()
-
-        image = pygame.Surface((width, height)).convert_alpha()
-        image.blit(spride_sheet_image, (0, 0),
-                   ((which_frame*width), 0, width, height))
-        image = pygame.transform.scale(image, (width*scaling, height*scaling))
-        if set_colorkey:
-            image.set_colorkey(alfa_color)
-        return image
-
-
 class Button(Picture):
     """
     # Creates a button
     """
 
-    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+    def __init__(self, sprite_location, how_many_columns, how_many_rows, alfa_color, scaling) -> None:
         '''
         * sprite_location (str) - path of sprite
         * how_many_images (int) - how many images in sprite
@@ -374,9 +252,9 @@ class Button(Picture):
         self.res_trig_0, self.res_trig_1, self.res_p_trig, self.res_counter_trig = None, None, None, 0
 
         self.current_state = 1
-        self.how_many_images = how_many_images
+        self.how_many_images = how_many_columns * how_many_rows
         self.images = Picture(
-            sprite_location, how_many_images, alfa_color, scaling)
+            sprite_location, how_many_columns, how_many_rows, alfa_color, scaling)
 
     def draw_button(self):
 
@@ -457,16 +335,21 @@ class Background:
         self.backgroud_pos_x = []
         # backgroud preload
         self.background_surface = pygame.image.load(
-            'imgs\\background_full_width.png').convert_alpha()
+            GameParam.Background.IMAGE).convert_alpha()
         # Green color
-        self.color_background = (124, 252, 0)
+        self.base_background = GameParam.Background.BASE_BACKGROUND
         # first and second surface poz
         self.backgroud_pos_x.append(0)
         self.backgroud_pos_x.append(0)
         # end
         pass
 
-    def background_on_off(self, background_yes, speed):
+    def background_on_off(self, background_yes: bool = True, speed: int = 1):
+        '''
+        # Background display #
+        * background_yes (bool) - turns the background on and off
+        * speed (int) - background speed
+        '''
         self.background_yes = background_yes
         self.speed = speed
 
@@ -474,7 +357,7 @@ class Background:
             # threading.Thread(target = moving_background, args=[]).start()
             self.moving_background(self.speed)
         else:
-            game.window.fill(self.color_background)
+            game.window.fill(self.base_background)
 
     def moving_background(self, speed):
 
@@ -493,7 +376,15 @@ class Background:
 
 
 class MusicBackground:
+    '''
+    class responsible for:
+    # Music Background
+    '''
+
     def __init__(self, sound_path) -> None:
+        '''
+        sound_path (str) - location of the .ogg file
+        '''
         self.trig_on_0, self.trig_on_1, self.p_trig_on, self.counter_trig_on = None, None, None, 0
         self.trig_off_0, self.trig_off_1, self.p_trig_off, self.counter_trig_off = None, None, None, 0
 
@@ -553,57 +444,6 @@ class MusicBackground:
         pass
 
 
-class KeyFromKeyboard(Trig):
-    '''
-    Is responsible for the button handle
-    '''
-
-    def __init__(self, key, how_many_state) -> None:
-        '''
-        * key - which key ( str_symbolic_name )
-        * how_many_state - how many states does the button have ( int )
-        '''
-        super().__init__()
-        self.key = key
-        self.how_many_state = how_many_state
-        self.key_deactivate = False
-
-        if self.key.upper() == 'P':
-            # self.designation_key = self.key.upper()
-            self.key = pygame.K_p
-        elif self.key.upper() == 'R':
-            # self.designation_key = self.key.upper()
-            self.key = pygame.K_r
-        elif self.key.upper() == 'G':
-            # self.designation_key = self.key.upper()
-            self.key = pygame.K_g
-        elif self.key.upper() == 'SPACE':
-            # self.designation_key = self.key.upper()
-            self.key = pygame.K_SPACE
-        else:
-            pass
-        pass
-
-    def deactivate(self):
-        self.key_deactivate = True
-
-    def do_event(self):
-        if self.key_deactivate:
-            return False
-        key = pygame.key.get_pressed()
-        return key[self.key]
-
-    def return_curent_state(self):
-        if self.key_deactivate:
-            return False
-        return super().return_curent_state(self.do_event(), self.how_many_state)
-
-    def key_return_trig(self):
-        if self.key_deactivate:
-            return False
-        return super().return_trig(self.do_event())
-
-
 class GameTexts:
     def __init__(self, game_texts_image, scale, co_ordinates) -> None:
         self.game_texts_image = game_texts_image
@@ -645,14 +485,13 @@ class Obstacle:
         * gap (int) -               sets the spacing between another walls  \n
         * wall_speed (int) -        sets speed of moving walls              \n
         * obstacle_image (str) -    location of the .png file               \n
-        * obstacle_image (str) -    location of the .png file               \n
         Optional:
         * corridor_range (int) -    isthmus between the pipes               \n
         * wall_width (int) -        pipes thickness                         \n
         * corridor_size (int)                                               \n
         '''
-        # PARAMETERS #   
-             
+        # PARAMETERS #
+
         self.corridor_range = corridor_range    # isthmus between the pipes
         self.wall_width = wall_width
         self.corridor_size = corridor_size
@@ -715,7 +554,7 @@ class Obstacle:
 
 
 class Player(Picture):
-    '''git 
+    '''
     # Create new player
     For correct operation, the methods must be called in a specific order:
         * move_character
@@ -723,20 +562,21 @@ class Player(Picture):
         * event_character
     '''
 
-    def __init__(self, sprite_location, how_many_images, alfa_color, scaling) -> None:
+    def __init__(self, sprite_location, how_many_columns, how_many_rows, alfa_color, scaling) -> None:
         '''
         * sprite_location (str) - path of sprite
-        * how_many_images (int) - how many images in sprite
+        * how_many_columns (int) - how many columns in sprite
+        * how_many_rows (int) - how many rows in sprite
         * alfa_color (str) - base color
         * scaling (float or int) - scaling by this value
         '''
 
         # Preload image from sprite
-        self.how_many_images = how_many_images
+        self.how_many_images = how_many_columns * how_many_rows
 
         #  uses the class Picture to load photos
         self.player_list_of_images = Picture(
-            sprite_location, how_many_images, alfa_color, scaling).list_of_images
+            sprite_location, how_many_columns, how_many_rows, alfa_color, scaling).list_of_images
 
         # Creating a dictionary containing angle as key and list of rotated images as value
         self.max_rotate_plus = 35
@@ -744,7 +584,7 @@ class Player(Picture):
         self.angle_step = 2
 
         self.dictionary_of_player_images_and_angles = self.dictionary_with_rotated_Surfaces(
-            self.player_list_of_images, how_many_images, self.max_rotate_plus, self.max_rotate_minus, self.angle_step)
+            self.player_list_of_images, self.how_many_images, self.max_rotate_plus, self.max_rotate_minus, self.angle_step)
 
         # For game handling
         self.player_is_dead = False
@@ -774,10 +614,10 @@ class Player(Picture):
 
         # For sounds effect
         self.flip = False
-        self.once_death_sound_event = Trig()  # uses the trig class to get a wink
+        self.once_death_sound_event = Trig()  # uses the trig class to get a score
 
         # Player stats #
-        self.player_score = 0
+        self.player_score = GameParam.Player.STARTING_SCORE
         self.player_score_trigg = Trig()  # uses the trig class to get a pulse
 
     def move_character(self, key_state) -> None:
@@ -840,7 +680,7 @@ class Player(Picture):
         game.window.blit(self.player_image, (self.pos_x-(self.player_image.get_width()/2),
                          self.pos_y-(self.player_image.get_height()/2)))
 
-    def event_character(self, God_mode: bool = False, box_collision: bool = False, mute_wing_sound: bool = False, mute_death_sound: bool = False, mute_score_sound: bool = False, color_box: str = 'RED') -> None:
+    def event_character(self, God_mode: bool = False, box_collision: bool = False, mute_wing_sound: bool = False, mute_death_sound: bool = False, mute_score_sound: bool = False) -> None:
         '''
         # Event handling \n
 
@@ -858,7 +698,7 @@ class Player(Picture):
         self.player_game_over(God_mode)
 
         # Box collision #
-        self.player_draw_box_collision(box_collision, color_box)
+        self.player_draw_box_collision(box_collision)
 
         # Counting points #
         self.player_count_score(mute_score_sound)
@@ -919,7 +759,7 @@ class Player(Picture):
         #########
         pass
 
-    def player_draw_box_collision(self, box_collision, color_box) -> None:
+    def player_draw_box_collision(self, box_collision) -> None:
         '''
         * box_collision (bool) - if True draws the collision box 
         * color_box (str)
@@ -927,19 +767,10 @@ class Player(Picture):
         if not box_collision:
             return 0
 
-        if color_box.upper() == 'WHITE':
-            color_box = (255, 255, 255)
-        elif color_box.upper() == 'BLACK':
-            color_box = (0, 0, 0)
-        elif color_box.upper() == 'RED':
-            color_box = (255, 0, 0)
-        elif color_box.upper() == 'GREAN':
-            color_box = (255, 0, 0)
-
         if self.player_is_dead:
-            pygame.draw.rect(game.window, color_box, self.rect_character, 1)
+            pygame.draw.rect(game.window, Color.RED, self.rect_character, 1)
         else:  # (124,252,0) 'GREAN'
-            pygame.draw.rect(game.window, (0, 255, 0), self.rect_character, 1)
+            pygame.draw.rect(game.window, Color.GREAN, self.rect_character, 1)
 
     def player_frame_animation(self) -> int:
         '''
@@ -1088,11 +919,35 @@ class Score:
         '''
         self.window_size = window_size
 
-        self.list_of_numbers_images = self.preload_game_score_image(scale)
+        # TO DO FONTS #
+        self.list_of_numbers_images = self.get_font_for_the_result(2)
+
         self.game_score_center_pos = self.game_score_center_pos_preload(
             text_height)
 
+    def get_font_for_the_result(self, font: int, scale: int = 1) -> List[pygame.Surface]:
+        '''
+        what font for the result
+        * font (int):
+        * 1 font..  White
+        * 2 font..  Own 1
+        * 3 font..  Own 2
+        '''
+
+        match font:
+            case 1:
+                return self.preload_game_score_image(scale)
+            case 2:
+                return Picture.init_from_dataclass(GameParam.Fonts_EXPANDED.FIRST_Digits).list_of_images
+            case 3:
+                return Picture(GameParam.Fonts.Digits.SECOND_IMAGE, 10, 1, '', 0.65).list_of_images
+            case _:
+                raise ValueError("Bad choice for the font")
+
     def preload_game_score_image(self, scale: int) -> List[pygame.Surface]:
+        '''
+        Very basic white letters
+        '''
 
         digit_images = ['imgs\digits\\0.png', 'imgs\digits\\1.png', 'imgs\digits\\2.png', 'imgs\digits\\3.png', 'imgs\digits\\4.png',
                         'imgs\digits\\5.png', 'imgs\digits\\6.png', 'imgs\digits\\7.png', 'imgs\digits\\8.png', 'imgs\digits\\9.png']
@@ -1100,7 +955,8 @@ class Score:
         list_images = list()
 
         for image in digit_images:
-            list_images.append(pygame.image.load(image).convert_alpha())
+            # .convert_alpha()) # is not needed
+            list_images.append(pygame.image.load(image))
 
         for idx, scaled_image in enumerate(list_images):
             list_images[idx] = pygame.transform.scale(
@@ -1199,25 +1055,39 @@ class Score:
 
 # Preload game
 game = Game()
-game.name_of_log("My Gmae")
+game.name_of_log(GameParam.NAME_OF_LOG)
 
 # Preload obstacle
-obstacle = Obstacle(400, 100, r'imgs\pipe-green.png')
+obstacle = Obstacle(
+    GameParam.Obstacle.GAP,
+    GameParam.Obstacle.WALL_SPEED,
+    GameParam.Obstacle.OBSTACLE_IMAGE)
 
 # Defining the space key
-key_space = KeyFromKeyboard('SPACE', 2)
+key_space = KeyFromKeyboard('SPACE')
 
 # Preload player
-player = Player(r'imgs\flappy_sprite.png', 4, 'RED', 0.25)
+player = Player(
+    GameParam.Player.IMAGE,
+    GameParam.Player.IMAGE_COLUMNS,
+    GameParam.Player.IMAGE_ROWS,
+    GameParam.Player.IMAGE_ALFA_COLOR,
+    GameParam.Player.IMAGE_SCALING)
 
 # Preload background layer 0
 background_layer_0 = Background()
 
 # Preload button mute
-button_mute = Button('imgs\\mute_sprite.png', 2, 'BLACK', 1)
+button_mute = Button(
+    GameParam.Button.IMAGE,
+    GameParam.Button.IMAGE_COLUMNS,
+    GameParam.Button.IMAGE_ROWS,
+    GameParam.Button.IMAGE_ALFA_COLOR,
+    GameParam.Button.IMAGE_SCALING)
 
 # Preload background music
-song_background = MusicBackground('music\\bensound-summer_ogg_music.ogg')
+song_background = MusicBackground(
+    GameParam.MusicBackground.SOUND_PATH)
 
 # -----------game texts-----------------------------------
 image_game_texts = ['imgs\Pause.png', 'imgs\Game_over.png', 'imgs\\resume.png']
@@ -1232,17 +1102,18 @@ resume_text = GameTexts(image_game_texts[2], 2/3, (25, 45))
 # --------------------------------------------------------
 
 # Defining the pause key
-key_pause = KeyFromKeyboard('P', 2)
+key_pause = KeyFromKeyboard('P')
 
 # Defining the reset key
-key_resume = KeyFromKeyboard('R', 2)
+key_resume = KeyFromKeyboard('R')
 
 
 # ------------- FOR TEST -------------------
 
 # Defining the gameover key
-key_test_gameover = KeyFromKeyboard('G', 2)
-key_test_gameover.deactivate()
+key_test_gameover = KeyFromKeyboard('G')
+# Deactivate the button
+key_test_gameover.deactivate_key()
 
 # ------------------------------------------
 
@@ -1263,7 +1134,7 @@ while game.running:
     obstacle.generate_walls_with_gap()
 
     # draws the background layer
-    background_layer_0.background_on_off(True, 1)
+    background_layer_0.background_on_off()
 
     # draw obstacle
     obstacle.draws_obstacles()

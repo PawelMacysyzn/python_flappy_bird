@@ -1,6 +1,6 @@
 build/
 main.spec
-__pycache__
+__pycache__/
 test.py
 module_Button_dummy.py
 test_2.py

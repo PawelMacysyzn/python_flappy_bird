@@ -1,3 +1,4 @@
+# FILE CONFIG FOR VAR, FOR GAME SETTINGS
 
 class Color:
 
@@ -6,6 +7,7 @@ class Color:
     WHITE = (255, 255, 255)
     RED   = (255, 0, 0)
     GREAN = (0, 255, 0)
+    ALPHA = (0)
 
 
 class GameParameters:
@@ -28,7 +30,7 @@ class GameParameters:
         IMAGE_ALFA_COLOR = 'RED'    # (str) - base color
         IMAGE_SCALING = 0.25        # (float or int) - scaling by this value
 
-        STARTING_SCORE = 222          # The player's starting score
+        STARTING_SCORE = 0          # The player's starting score
 
 
     class Obstacle:
@@ -60,22 +62,50 @@ class GameParameters:
 
         class Digits:
 
-            FIRST_IMAGE =  r'imgs\digits\game-font-pixel-art-8bit-style-numbers.jpg' # (str) - location of the .png file
-            SECOND_IMAGE = r'imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.jpg' # (str) - location of the .png file
+            FIRST_IMAGE =  r'imgs\digits\game-font-pixel-art-8bit-style-numbers.png' # (str) - location of the .png file
+            SECOND_IMAGE = r'imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.png' # (str) - location of the .png file
 
         class Letters:
 
-            FIRST_IMAGE =  r'imgs\letters\game-font-pixel-art-8bit-style-letters.jpg' # (str) - location of the .png file
-            SECOND_IMAGE = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.jpg' # (str) - location of the .png file
+            FIRST_IMAGE =  r'imgs\letters\game-font-pixel-art-8bit-style-letters.png' # (str) - location of the .png file
+            SECOND_IMAGE = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.png' # (str) - location of the .png file
 
 
 
 
+    class Fonts_EXPANDED:
 
+        class FIRST_Digits:
 
+            SPRITE =  r'imgs\digits\game-font-pixel-art-8bit-style-numbers.png' # (str) - location of the .png file
+            HOW_MANY_COLUMNS = 10
+            HOW_MANY_ROWS = 1
+            ALFA_COLOR = Color.GREEN_SCREEN
+            SCALING = 2
 
+        class SECOND_Digits:
 
+            SPRITE = r'imgs\digits\pixel-alphabet-font-numbers-set-video-computer-game-retro-8-bit-style.png' # (str) - location of the .png file
+            HOW_MANY_COLUMNS = 10
+            HOW_MANY_ROWS = 1
+            ALFA_COLOR = Color.ALPHA
+            SCALING = 1/3 
 
+        class FIRST_Letters:    
+            
+            SPRITE = r'imgs\letters\game-font-pixel-art-8bit-style-letters.png' # (str) - location of the .png file
+            HOW_MANY_COLUMNS = 9
+            HOW_MANY_ROWS = 3
+            ALFA_COLOR = Color.WHITE
+            SCALING = 3 
+
+        class SECOND_Letters:    
+            
+            SPRITE = r'imgs\letters\pixel-alphabet-font-letters-set-video-computer-game-retro-8-bit-style.png' # (str) - location of the .png file
+            HOW_MANY_COLUMNS = 9
+            HOW_MANY_ROWS = 4
+            ALFA_COLOR = Color.ALPHA
+            SCALING = 1/3 
 
 
 

@@ -289,7 +289,7 @@ def main():
             font_letters_one.test_show_vertically_side_by_side(window, 5, True)
         if False:  # showing continuous animation of:                                   imgs\letters\game-font-pixel-art-8bit-style-letters.png
             font_letters_one.test_show_photos_animation(window, 5)
-        if False:  # displaying picture by picture after pressing enter:                 imgs\letters\game-font-pixel-art-8bit-style-letters.png
+        if True:  # displaying picture by picture after pressing enter:                 imgs\letters\game-font-pixel-art-8bit-style-letters.png
             font_letters_one.test_press_enter_to_show_next_photo(window, 3)
         ####################################################################
 
